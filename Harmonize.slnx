@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/github/">
+    <File Path=".github/dependabot.yml" />
+      <File Path=".github/workflows/build-publish.yml" />
+    </Folder>
+    <Folder Name="/config/">
+      <File Path="Directory.Build.props" />
+      <File Path="global.json" />
+    </Folder>
+  <Project Path="Harmonize.Analyzers/Harmonize.Analyzers.csproj" />
+  <Project Path="Harmonize.CodeFixes/Harmonize.CodeFixes.csproj" />
+  <Project Path="Harmonize.Package/Harmonize.Package.csproj" />
+  <Project Path="Harmonize.Test/Harmonize.Test.csproj" />
+  <Project Path="Harmonize.Vsix/Harmonize.Vsix.csproj" />
+</Solution>

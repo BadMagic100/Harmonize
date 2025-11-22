@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Targeting minimum of .NET 8.0.1xx, VS/MSBuild version 17.8 -->
+    <RoslynVersion>4.8.0</RoslynVersion>
+  </PropertyGroup>
+</Project>

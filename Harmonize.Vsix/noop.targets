@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+    <Target Name="Build">
+        <Message Text="$(MSBuildProjectName) has been skipped." />
+    </Target>
+</Project>
