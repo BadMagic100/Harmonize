@@ -3,7 +3,7 @@ updates:
   - directory: /
     package-ecosystem: nuget
     ignore:
-      - dependency-name: Microsoft.CodeAnalysis.*
+      - dependency-name: Microsoft.CodeAnalysis*
     schedule:
       interval: daily
   - directory: /

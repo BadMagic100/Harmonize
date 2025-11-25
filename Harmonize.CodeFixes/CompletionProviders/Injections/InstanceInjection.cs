@@ -10,14 +10,14 @@ internal class InstanceInjection : IInjection
 {
     public string Name => nameof(InstanceInjection);
 
-    public bool HasCompletions(HarmonyContext context)
+    public bool HasCompletions(HarmonyPatchContext context)
     {
-        return context.TargetMethod != null && !context.TargetMethod.IsStatic;
+        return context.TargetMethod != null && !context.TargetMethod.IsAmbiguous && !context.TargetMethod.Value.IsStatic;
     }
 
-    public ImmutableArray<CompletionItem> GetCompletions(HarmonyContext ctx, SemanticModel semanticModel, TextSpan originalSpan)
+    public ImmutableArray<CompletionItem> GetCompletions(HarmonyPatchContext ctx, SemanticModel semanticModel, TextSpan originalSpan)
     {
-        string displayPrefix = QualifiedNameHelper.GetMinimallyQualifiedTypeName(ctx.TargetType!, semanticModel, originalSpan);
+        string displayPrefix = QualifiedNameHelper.GetMinimallyQualifiedTypeName(ctx.TargetType, semanticModel, originalSpan);
         CompletionItem item = CompletionItem.Create($"{displayPrefix} __instance", tags: ImmutableArray.Create(WellKnownTags.Parameter))
             .WithSortText("__instance")
             .WithFilterText("__instance");

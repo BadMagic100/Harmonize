@@ -45,7 +45,7 @@ public class HarmonyInjectionCompletionProvider : CompletionProvider
             return;
         }
 
-        HarmonyContext? harmonyContext = HarmonyContext.GetContextForNode(decl, semanticModel, context.CancellationToken);
+        HarmonyPatchContext? harmonyContext = HarmonyPatchContext.GetContextForNode(decl, semanticModel, context.CancellationToken);
 
         if (harmonyContext == null)
         {
