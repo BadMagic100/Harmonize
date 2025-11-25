@@ -12,7 +12,7 @@ public enum MethodKind
     Normal,
     Getter,
     Setter,
-    Unsupported
+    Unsupported,
 }
 
 // mapping of https://harmony.pardeike.net/api/HarmonyLib.ArgumentType.html
@@ -21,44 +21,53 @@ public enum ArgumentKind
     Normal,
     Out,
     Ref,
-    Unsupported
+    Unsupported,
 }
 
 file static class EnumMapping
 {
     public static MethodKind ParseMethodKind(ITypeSymbol enumType, object? constantValue)
     {
-        IFieldSymbol? matchedValue = enumType.GetMembers()
-                .OfType<IFieldSymbol>()
-                .Where(f => f.HasConstantValue && f.ConstantValue == constantValue)
-                .FirstOrDefault();
+        IFieldSymbol? matchedValue = enumType
+            .GetMembers()
+            .OfType<IFieldSymbol>()
+            .Where(f => f.HasConstantValue && f.ConstantValue == constantValue)
+            .FirstOrDefault();
         return matchedValue?.Name switch
         {
             "Normal" => MethodKind.Normal,
             "Getter" => MethodKind.Getter,
             "Setter" => MethodKind.Setter,
-            _ => MethodKind.Unsupported
+            _ => MethodKind.Unsupported,
         };
     }
 
-    public static ImmutableArray<ArgumentKind> ParseArgumentKinds(ITypeSymbol enumType, ImmutableArray<TypedConstant> values)
+    public static ImmutableArray<ArgumentKind> ParseArgumentKinds(
+        ITypeSymbol enumType,
+        ImmutableArray<TypedConstant> values
+    )
     {
-        Dictionary<object?, string> lookup = enumType.GetMembers()
+        Dictionary<object?, string> lookup = enumType
+            .GetMembers()
             .OfType<IFieldSymbol>()
             .Where(f => f.HasConstantValue)
             .ToDictionary(f => f.ConstantValue, f => f.Name);
-        ImmutableArray<ArgumentKind>.Builder builder = ImmutableArray.CreateBuilder<ArgumentKind>(values.Length);
+        ImmutableArray<ArgumentKind>.Builder builder = ImmutableArray.CreateBuilder<ArgumentKind>(
+            values.Length
+        );
         foreach (TypedConstant value in values)
         {
             if (lookup.TryGetValue(value.Value, out string name))
             {
-                builder.Add(name switch
-                {
-                    "Normal" => ArgumentKind.Normal,
-                    "Out" => ArgumentKind.Out,
-                    "Ref" => ArgumentKind.Ref,
-                    _ => ArgumentKind.Unsupported,
-                });
+                builder.Add(
+                    name switch
+                    {
+                        "Normal" => ArgumentKind.Normal,
+                        "Out" => ArgumentKind.Out,
+                        "Ref" => ArgumentKind.Ref,
+                        _ => ArgumentKind.Unsupported,
+                    }
+                );
             }
             else
             {
@@ -218,11 +227,23 @@ public record HarmonyPatchAttributeData(
             {
                 if (TryReadMethodType(args[1], out methodType))
                 {
-                    return new(declaringType.ToMA(), null, methodType, argumentTypes, argumentKinds);
+                    return new(
+                        declaringType.ToMA(),
+                        null,
+                        methodType,
+                        argumentTypes,
+                        argumentKinds
+                    );
                 }
                 else if (TryReadString(args[1], out methodName))
                 {
-                    return new(declaringType.ToMA(), methodName, null, argumentTypes, argumentKinds);
+                    return new(
+                        declaringType.ToMA(),
+                        methodName,
+                        null,
+                        argumentTypes,
+                        argumentKinds
+                    );
                 }
             }
         }
@@ -252,10 +273,8 @@ public record HarmonyPatchAttributeData(
             a.TargetMethodName,
             b.TargetMethodName
         );
-        MaybeAmbiguous<MethodKind>? candidateMethodKinds = MaybeAmbiguous<MethodKind>.MergeSymmetric(
-            a.MethodKind,
-            b.MethodKind
-        );
+        MaybeAmbiguous<MethodKind>? candidateMethodKinds =
+            MaybeAmbiguous<MethodKind>.MergeSymmetric(a.MethodKind, b.MethodKind);
         MaybeAmbiguous<ImmutableArray<INamedTypeSymbol>>? candidateArgumentTypes = MaybeAmbiguous<
             ImmutableArray<INamedTypeSymbol>
         >.MergeSymmetric(a.ArgumentTypes, b.ArgumentTypes);
@@ -296,8 +315,7 @@ public record HarmonyPatchAttributeData(
         if (
             arg.Kind == TypedConstantKind.Primitive
             && !arg.IsNull
-            && arg.Type?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
-                == "string"
+            && arg.Type?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == "string"
         )
         {
             str = (string)arg.Value!;

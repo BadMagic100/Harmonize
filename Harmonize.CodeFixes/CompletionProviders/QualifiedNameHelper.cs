@@ -1,14 +1,21 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using System.Collections.Immutable;
 
 namespace Harmonize.CompletionProviders;
 
 internal class QualifiedNameHelper
 {
-    public static string GetMinimallyQualifiedTypeName(INamedTypeSymbol type, SemanticModel semanticModel, int position)
+    public static string GetMinimallyQualifiedTypeName(
+        INamedTypeSymbol type,
+        SemanticModel semanticModel,
+        int position
+    )
     {
-        ImmutableArray<ISymbol> availableTypes = semanticModel.LookupNamespacesAndTypes(position, name: type.Name);
+        ImmutableArray<ISymbol> availableTypes = semanticModel.LookupNamespacesAndTypes(
+            position,
+            name: type.Name
+        );
         string displayName = type.ToDisplayString();
         foreach (ISymbol symbol in availableTypes)
         {
@@ -21,7 +28,11 @@ internal class QualifiedNameHelper
         return displayName;
     }
 
-    public static string GetMinimallyQualifiedTypeName(INamedTypeSymbol type, SemanticModel semanticModel, TextSpan span)
+    public static string GetMinimallyQualifiedTypeName(
+        INamedTypeSymbol type,
+        SemanticModel semanticModel,
+        TextSpan span
+    )
     {
         return GetMinimallyQualifiedTypeName(type, semanticModel, span.Start);
     }

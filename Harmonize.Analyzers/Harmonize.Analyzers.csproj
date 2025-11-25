@@ -1,25 +1,37 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <RootNamespace>Harmonize</RootNamespace>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
-
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
   </PropertyGroup>
-
   <ItemGroup>
-    <AdditionalFiles Include="AnalyzerReleases.Shipped.md"/>
-    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md"/>
+    <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
   </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="PolySharp" Version="1.15.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" PrivateAssets="all" />
+    <PackageReference
+      Include="Microsoft.CodeAnalysis.Analyzers"
+      Version="3.11.0"
+      PrivateAssets="all"
+    />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />
-    <PackageReference Include="PolySharp" Version="1.15.0" PrivateAssets="all"/>
+    <PackageReference Include="PolySharp" Version="1.15.0" PrivateAssets="all" />
+    <PackageReference Include="CSharpier.MsBuild" Version="1.2.1" PrivateAssets="all" />
   </ItemGroup>
-
+  <Target Name="Husky" BeforeTargets="Restore;CollectPackageReferences" Condition="'$(HUSKY)' != 0">
+    <Exec
+      Command="dotnet tool restore"
+      StandardOutputImportance="Low"
+      StandardErrorImportance="High"
+    />
+    <Exec
+      Command="dotnet husky install"
+      StandardOutputImportance="Low"
+      StandardErrorImportance="High"
+      WorkingDirectory=".."
+    />
+  </Target>
 </Project>

@@ -166,12 +166,14 @@ public record HarmonyPatchContext(
             finalTargetInfo.TargetMethodName.Value,
             finalTargetInfo.MethodKind.Value,
             finalTargetInfo.ArgumentTypes?.Value,
-            finalTargetInfo.ArgumentKinds?.Value);
+            finalTargetInfo.ArgumentKinds?.Value
+        );
 
         return new HarmonyPatchContext(
             finalTargetInfo.TargetType.Value,
             MaybeAmbiguous<IMethodSymbol>.FromEnumerable(candidateMethods),
-            patchType);
+            patchType
+        );
     }
 
     private static ImmutableArray<IMethodSymbol> GetCandidateMethods(
@@ -204,7 +206,7 @@ public record HarmonyPatchContext(
                 .OfType<IPropertySymbol>()
                 .Where(p => p.SetMethod != null)
                 .Select(p => p.SetMethod!),
-            _ => []
+            _ => [],
         };
 
         if (argTypes != null)
@@ -219,7 +221,10 @@ public record HarmonyPatchContext(
         return candidates.ToImmutableArray();
     }
 
-    private static bool AllArgTypesMatch(ImmutableArray<IParameterSymbol> parameters, ImmutableArray<INamedTypeSymbol> types)
+    private static bool AllArgTypesMatch(
+        ImmutableArray<IParameterSymbol> parameters,
+        ImmutableArray<INamedTypeSymbol> types
+    )
     {
         if (parameters.Length != types.Length)
         {
@@ -236,7 +241,10 @@ public record HarmonyPatchContext(
         return true;
     }
 
-    private static bool AllArgKindsMatch(ImmutableArray<IParameterSymbol> parameters, ImmutableArray<ArgumentKind> kinds)
+    private static bool AllArgKindsMatch(
+        ImmutableArray<IParameterSymbol> parameters,
+        ImmutableArray<ArgumentKind> kinds
+    )
     {
         if (parameters.Length != kinds.Length)
         {

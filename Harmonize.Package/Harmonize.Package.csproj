@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeBuildOutput>false</IncludeBuildOutput>
@@ -34,11 +33,20 @@
     <ProjectReference Include="..\Harmonize.Analyzers\Harmonize.Analyzers.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="CSharpier.MsBuild" Version="1.2.1" PrivateAssets="all" />
+  </ItemGroup>
+
   <Target Name="_AddAnalyzersToOutput">
     <ItemGroup>
-      <TfmSpecificPackageFile Include="$(OutputPath)\Harmonize.Analyzers.dll" PackagePath="analyzers/dotnet/cs" />
-      <TfmSpecificPackageFile Include="$(OutputPath)\Harmonize.CodeFixes.dll" PackagePath="analyzers/dotnet/cs" />
+      <TfmSpecificPackageFile
+        Include="$(OutputPath)\Harmonize.Analyzers.dll"
+        PackagePath="analyzers/dotnet/cs"
+      />
+      <TfmSpecificPackageFile
+        Include="$(OutputPath)\Harmonize.CodeFixes.dll"
+        PackagePath="analyzers/dotnet/cs"
+      />
     </ItemGroup>
   </Target>
-
 </Project>
