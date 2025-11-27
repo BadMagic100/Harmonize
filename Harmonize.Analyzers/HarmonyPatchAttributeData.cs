@@ -86,8 +86,71 @@ public record HarmonyPatchAttributeData(
     MaybeAmbiguous<ImmutableArray<ArgumentKind>>? ArgumentKinds
 )
 {
+    public static HarmonyPatchAttributeData? ExtractFromSymbol(ISymbol symbol)
+    {
+        ImmutableArray<AttributeData> attrs = symbol.GetAttributes();
+        List<HarmonyPatchAttributeData> attrDatas = [];
+        foreach (AttributeData attr in attrs)
+        {
+            if (
+                attr.AttributeClass?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+                == "global::HarmonyLib.HarmonyPatch"
+            )
+            {
+                attrDatas.Add(ExtractFromAttribute(attr));
+            }
+        }
+
+        if (attrDatas.Count == 0)
+        {
+            return null;
+        }
+
+        HarmonyPatchAttributeData current = attrDatas[0];
+        for (int i = 1; i < attrDatas.Count; i++)
+        {
+            current = MergeSymmetric(current, attrDatas[i]);
+        }
+        return current;
+    }
+
+    public static HarmonyPatchAttributeData? ExtractFromMethodWithInheritance(IMethodSymbol symbol)
+    {
+        HarmonyPatchAttributeData? methodData = ExtractFromSymbol(symbol);
+        HarmonyPatchAttributeData? classData = ExtractFromSymbol(symbol.ContainingType);
+
+        // not declared as a HarmonyPatch
+        if (methodData == null && classData == null)
+        {
+            return null;
+        }
+
+        HarmonyPatchAttributeData finalTargetInfo;
+        if (classData == null)
+        {
+            // if class is null and we got past the immediately preceding return, we know method is non-null
+            finalTargetInfo = methodData!;
+        }
+        else
+        {
+            finalTargetInfo = methodData?.MergeOver(classData) ?? classData;
+        }
+        return finalTargetInfo;
+    }
+
+    public HarmonyPatchAttributeData MergeOver(HarmonyPatchAttributeData other)
+    {
+        return new HarmonyPatchAttributeData(
+            TargetType ?? other.TargetType,
+            TargetMethodName ?? other.TargetMethodName,
+            MethodKind ?? other.MethodKind,
+            ArgumentTypes ?? other.ArgumentTypes,
+            ArgumentKinds ?? other.ArgumentKinds
+        );
+    }
+
     // overloads at https://harmony.pardeike.net/api/HarmonyLib.HarmonyPatch.html
-    public static HarmonyPatchAttributeData ExtractFromAttribute(AttributeData data)
+    private static HarmonyPatchAttributeData ExtractFromAttribute(AttributeData data)
     {
         ImmutableArray<TypedConstant> args = data.ConstructorArguments;
         if (args.Length == 0)
@@ -251,18 +314,7 @@ public record HarmonyPatchAttributeData(
         return new HarmonyPatchAttributeData(null, null, null, null, null);
     }
 
-    public HarmonyPatchAttributeData MergeOver(HarmonyPatchAttributeData other)
-    {
-        return new HarmonyPatchAttributeData(
-            TargetType ?? other.TargetType,
-            TargetMethodName ?? other.TargetMethodName,
-            MethodKind ?? other.MethodKind,
-            ArgumentTypes ?? other.ArgumentTypes,
-            ArgumentKinds ?? other.ArgumentKinds
-        );
-    }
-
-    public static HarmonyPatchAttributeData MergeSymmetric(
+    private static HarmonyPatchAttributeData MergeSymmetric(
         HarmonyPatchAttributeData a,
         HarmonyPatchAttributeData b
     )

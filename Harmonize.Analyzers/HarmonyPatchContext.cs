@@ -8,14 +8,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Harmonize;
 
-public enum PatchType
-{
-    Unknown,
-    Prefix,
-    Postfix,
-    Transpiler,
-}
-
 public record HarmonyPatchContext(
     INamedTypeSymbol TargetType,
     MaybeAmbiguous<IMethodSymbol>? TargetMethod,
@@ -40,137 +32,50 @@ public record HarmonyPatchContext(
             return null;
         }
 
-        // we've experimentally determined that name-based matching takes precedence over attribute-based
-        PatchType patchType = symbol.Name switch
-        {
-            "Prefix" => PatchType.Prefix,
-            "Postfix" => PatchType.Postfix,
-            "Transpiler" => PatchType.Transpiler,
-            _ => PatchType.Unknown,
-        };
-
-        ImmutableArray<AttributeData> attrs = symbol.GetAttributes();
-        List<HarmonyPatchAttributeData> targetInfos = [];
-        foreach (AttributeData attr in attrs)
-        {
-            string? attributeFullName = attr.AttributeClass?.ToDisplayString(
-                SymbolDisplayFormat.FullyQualifiedFormat
-            );
-            if (attributeFullName == null)
-            {
-                continue;
-            }
-
-            if (
-                patchType == PatchType.Unknown
-                && attributeFullName == "global::HarmonyLib.HarmonyPrefix"
-            )
-            {
-                patchType = PatchType.Prefix;
-            }
-            if (
-                patchType == PatchType.Unknown
-                && attributeFullName == "global::HarmonyLib.HarmonyPostfix"
-            )
-            {
-                patchType = PatchType.Postfix;
-            }
-            if (
-                patchType == PatchType.Unknown
-                && attributeFullName == "global::HarmonyLib.HarmonyTranspiler"
-            )
-            {
-                patchType = PatchType.Transpiler;
-            }
-
-            if (attributeFullName != "global::HarmonyLib.HarmonyPatch")
-            {
-                continue;
-            }
-
-            targetInfos.Add(HarmonyPatchAttributeData.ExtractFromAttribute(attr));
-        }
-
-        // couldn't figure out what type of patch
+        PatchType patchType = symbol.GetPatchType();
         if (patchType == PatchType.Unknown)
         {
             return null;
         }
 
-        ImmutableArray<AttributeData> classAttrs = symbol.ContainingType.GetAttributes();
-        List<HarmonyPatchAttributeData> classTargetInfos = [];
-        foreach (AttributeData attr in classAttrs)
-        {
-            string? attributeFullName = attr.AttributeClass?.ToDisplayString(
-                SymbolDisplayFormat.FullyQualifiedFormat
-            );
-            if (attributeFullName != "global::HarmonyLib.HarmonyPatch")
-            {
-                continue;
-            }
-
-            classTargetInfos.Add(HarmonyPatchAttributeData.ExtractFromAttribute(attr));
-        }
-
-        // not declared as a HarmonyPatch
-        if (targetInfos.Count == 0 && classTargetInfos.Count == 0)
+        HarmonyPatchAttributeData? targetInfo =
+            HarmonyPatchAttributeData.ExtractFromMethodWithInheritance(symbol);
+        if (targetInfo == null)
         {
             return null;
         }
 
-        // data can be spread across multiple attributes, so merge all the attributes for both the method and the class.
-        // method data fields overwrite the value on the class if both are present.
-        HarmonyPatchAttributeData mergedTargetInfo = new(null, null, null, null, null);
-        for (int i = 0; i < targetInfos.Count; i++)
-        {
-            mergedTargetInfo = HarmonyPatchAttributeData.MergeSymmetric(
-                mergedTargetInfo,
-                targetInfos[i]
-            );
-        }
-
-        HarmonyPatchAttributeData classMergedTargetInfo = new(null, null, null, null, null);
-        for (int i = 0; i < classTargetInfos.Count; i++)
-        {
-            classMergedTargetInfo = HarmonyPatchAttributeData.MergeSymmetric(
-                classMergedTargetInfo,
-                classTargetInfos[i]
-            );
-        }
-
-        HarmonyPatchAttributeData finalTargetInfo =
-            mergedTargetInfo?.MergeOver(classMergedTargetInfo) ?? classMergedTargetInfo;
         // apply defaults. default for argument type/kind is "whatever matches" which we can't represent here
-        if (finalTargetInfo.MethodKind == null)
+        if (targetInfo.MethodKind == null)
         {
-            finalTargetInfo = finalTargetInfo with { MethodKind = MethodKind.Normal };
+            targetInfo = targetInfo with { MethodKind = Harmonize.MethodKind.Normal };
         }
 
         // to proceed we need unambiguous values (or defaults) for all fields. a separate analyzer will flag a problem
         // if this is not the case
         if (
-            finalTargetInfo.TargetType == null
-            || finalTargetInfo.TargetType.IsAmbiguous
-            || finalTargetInfo.TargetMethodName == null
-            || finalTargetInfo.TargetMethodName.IsAmbiguous
-            || finalTargetInfo.MethodKind.IsAmbiguous
-            || finalTargetInfo.ArgumentTypes?.IsAmbiguous == true
-            || finalTargetInfo.ArgumentKinds?.IsAmbiguous == true
+            targetInfo.TargetType == null
+            || targetInfo.TargetType.IsAmbiguous
+            || targetInfo.TargetMethodName == null
+            || targetInfo.TargetMethodName.IsAmbiguous
+            || targetInfo.MethodKind.IsAmbiguous
+            || targetInfo.ArgumentTypes?.IsAmbiguous == true
+            || targetInfo.ArgumentKinds?.IsAmbiguous == true
         )
         {
             return null;
         }
 
         ImmutableArray<IMethodSymbol> candidateMethods = GetCandidateMethods(
-            finalTargetInfo.TargetType.Value,
-            finalTargetInfo.TargetMethodName.Value,
-            finalTargetInfo.MethodKind.Value,
-            finalTargetInfo.ArgumentTypes?.Value,
-            finalTargetInfo.ArgumentKinds?.Value
+            targetInfo.TargetType.Value,
+            targetInfo.TargetMethodName.Value,
+            targetInfo.MethodKind.Value,
+            targetInfo.ArgumentTypes?.Value,
+            targetInfo.ArgumentKinds?.Value
         );
 
         return new HarmonyPatchContext(
-            finalTargetInfo.TargetType.Value,
+            targetInfo.TargetType.Value,
             MaybeAmbiguous<IMethodSymbol>.FromEnumerable(candidateMethods),
             patchType
         );
