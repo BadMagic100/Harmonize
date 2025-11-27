@@ -5,9 +5,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Harmonize.CompletionProviders.Injections;
 
-internal interface IInjection
+public interface IInjection
 {
-    public string Name { get; }
     public bool HasCompletions(HarmonyPatchContext context);
     public ImmutableArray<CompletionItem> GetCompletions(
         HarmonyPatchContext ctx,

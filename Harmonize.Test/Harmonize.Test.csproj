@@ -18,6 +18,12 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
 
     <PackageReference Include="Microsoft.CodeAnalysis" Version="$(RoslynVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Features" Version="$(RoslynVersion)" />
+    <PackageReference
+      Include="Microsoft.CodeAnalysis.CSharp.Workspaces"
+      Version="$(RoslynVersion)"
+    />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="$(RoslynVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="1.1.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="1.1.2" />
     <PackageReference

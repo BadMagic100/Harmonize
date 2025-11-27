@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Harmonize.CompletionProviders.Injections;
 
-internal class InstanceInjection : IInjection
+public class InstanceInjection : IInjection
 {
     public string Name => nameof(InstanceInjection);
 

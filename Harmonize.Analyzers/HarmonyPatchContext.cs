@@ -48,7 +48,7 @@ public record HarmonyPatchContext(
         // apply defaults. default for argument type/kind is "whatever matches" which we can't represent here
         if (targetInfo.MethodKind == null)
         {
-            targetInfo = targetInfo with { MethodKind = Harmonize.MethodKind.Normal };
+            targetInfo = targetInfo with { MethodKind = MethodKind.Normal };
         }
 
         // to proceed we need unambiguous values (or defaults) for all fields. a separate analyzer will flag a problem

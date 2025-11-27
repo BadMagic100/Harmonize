@@ -12,10 +12,10 @@ namespace Harmonize.CompletionProviders;
 [ExportCompletionProvider(nameof(HarmonyInjectionCompletionProvider), LanguageNames.CSharp)]
 public class HarmonyInjectionCompletionProvider : CompletionProvider
 {
-    private const string PROP_INJECTION_NAME = "InjectionName";
+    public const string PROP_INJECTION_NAME = "InjectionName";
     private static readonly IEnumerable<IInjection> injections = [new InstanceInjection()];
     private static readonly ImmutableDictionary<string, IInjection> injectionLookup =
-        injections.ToImmutableDictionary(x => x.Name);
+        injections.ToImmutableDictionary(x => x.GetType().Name);
 
     public override async Task ProvideCompletionsAsync(CompletionContext context)
     {
@@ -79,7 +79,7 @@ public class HarmonyInjectionCompletionProvider : CompletionProvider
                 )
             )
             {
-                context.AddItem(item.AddProperty(PROP_INJECTION_NAME, injection.Name));
+                context.AddItem(item.AddProperty(PROP_INJECTION_NAME, injection.GetType().Name));
             }
         }
     }
