@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 
 namespace Harmonize;
 
-public class MaybeAmbiguous<T>
+public class MaybeAmbiguous<T> : IEquatable<MaybeAmbiguous<T>>
 {
     private readonly ImmutableArray<T> candidates;
 
@@ -45,6 +45,22 @@ public class MaybeAmbiguous<T>
             result = MergeSymmetric(value, result);
         }
         return result;
+    }
+
+    public bool Equals(MaybeAmbiguous<T> other)
+    {
+        if (candidates.Length != other.candidates.Length)
+        {
+            return false;
+        }
+        for (int i = 0; i < candidates.Length; i++)
+        {
+            if (candidates[i]?.Equals(other.candidates[i]) == false)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     public static implicit operator MaybeAmbiguous<T>(T orig)

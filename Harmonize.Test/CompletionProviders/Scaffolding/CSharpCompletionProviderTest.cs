@@ -1,8 +1,8 @@
 ﻿using System.Collections.Immutable;
 using System.Text;
+using Harmonize.Test.Helper;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Testing;
 
@@ -109,14 +109,13 @@ internal class CSharpCompletionProviderTest<T>
         CancellationToken cancellationToken
     )
     {
-        int pos = testCode.IndexOf("{|#0:|}");
-        testCode = testCode.Replace("{|#0:|}", "");
+        TestFileMarkupParser.GetPosition(testCode, out string finalCode, out int pos);
 
         MefHostServices host = MefHostServices.Create([
             .. MefHostServices.DefaultAssemblies,
             typeof(T).Assembly,
         ]);
-        Document doc = await CreateDocumentAsync(testCode, host, cancellationToken);
+        Document doc = await RoslynHelpers.CreateDocumentAsync(finalCode, host, cancellationToken);
         CompletionService svc = CompletionService.GetService(doc)!;
         CompletionList results = await svc.GetCompletionsAsync(
             doc,
@@ -148,29 +147,5 @@ internal class CSharpCompletionProviderTest<T>
             + $"FilterText=`{item.FilterText}`, SortText=`{item.SortText}`, "
             + $"Tags=[{string.Join(", ", item.Tags)}], "
             + $"Properties={{{string.Join(", ", item.Properties.Select(x => $"{x.Key}={x.Value}"))}}}";
-    }
-
-    private async Task<Document> CreateDocumentAsync(
-        string code,
-        MefHostServices host,
-        CancellationToken cancellationToken
-    )
-    {
-        ReferenceAssemblies refs = ReferenceAssemblies.Default.AddPackages([
-            new PackageIdentity("Lib.Harmony", "2.4.2"),
-        ]);
-        CSharpCompilationOptions options = new CSharpCompilationOptions(
-            OutputKind.DynamicallyLinkedLibrary
-        );
-
-        Project project = new AdhocWorkspace(host)
-            .AddProject("TestProject", LanguageNames.CSharp)
-            .WithCompilationOptions(options)
-            .AddMetadataReferences(
-                await refs.ResolveAsync(LanguageNames.CSharp, cancellationToken)
-            );
-
-        Document doc = project.AddDocument("TestDocument", code);
-        return doc;
     }
 }

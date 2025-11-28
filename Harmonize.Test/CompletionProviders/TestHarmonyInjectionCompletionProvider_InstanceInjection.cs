@@ -25,7 +25,7 @@ public partial class TestHarmonyInjectionCompletionProvider
             {
                 [HarmonyPatch(typeof(Patched), nameof(Patched.PatchMe))]
                 [HarmonyPrefix]
-                public static void PatchMePrefix(_{|#0:|}) { }
+                public static void PatchMePrefix(_$$) { }
             }
             """;
 
@@ -68,7 +68,7 @@ public partial class TestHarmonyInjectionCompletionProvider
             {
                 [HarmonyPatch(typeof(Foo.Patched), nameof(Foo.Patched.PatchMe))]
                 [HarmonyPrefix]
-                public static void PatchMePrefix(_{|#0:|}) { }
+                public static void PatchMePrefix(_$$) { }
             }
             """;
 
@@ -108,7 +108,7 @@ public partial class TestHarmonyInjectionCompletionProvider
             {
                 [HarmonyPatch(typeof(Patched), nameof(Patched.PatchMe))]
                 [HarmonyPrefix]
-                public static void PatchMePrefix(_{|#0:|}) { }
+                public static void PatchMePrefix(_$$) { }
             }
             """;
 
