@@ -33,12 +33,19 @@ internal static class RoslynHelpers
         return doc;
     }
 
-    public static async Task<IMethodSymbol> AssertSpanIsMethodAndGetAsync(
-        Document doc,
-        TextSpan span,
+    public static async Task<IMethodSymbol> GetMethodSymbolFromSourceAsync(
+        string code,
         CancellationToken cancellationToken
     )
     {
+        TestFileMarkupParser.GetSpan(code, out string finalCode, out TextSpan span);
+
+        Document doc = await CreateDocumentAsync(
+            finalCode,
+            MefHostServices.DefaultHost,
+            cancellationToken
+        );
+
         SyntaxNode? root = await doc.GetSyntaxRootAsync(cancellationToken);
         SemanticModel? model = await doc.GetSemanticModelAsync(cancellationToken);
 

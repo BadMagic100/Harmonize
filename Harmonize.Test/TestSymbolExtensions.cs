@@ -1,8 +1,5 @@
 ﻿using Harmonize.Test.Helper;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Harmonize.Test;
 
@@ -22,17 +19,9 @@ public class TestSymbolExtensions
                 [|public void Prefix()|] { }
             }
             """;
-        TestFileMarkupParser.GetSpan(code, out string finalCode, out TextSpan span);
 
-        Document doc = await RoslynHelpers.CreateDocumentAsync(
-            finalCode,
-            MefHostServices.DefaultHost,
-            TestContext.Current.CancellationToken
-        );
-
-        IMethodSymbol symbol = await RoslynHelpers.AssertSpanIsMethodAndGetAsync(
-            doc,
-            span,
+        IMethodSymbol symbol = await RoslynHelpers.GetMethodSymbolFromSourceAsync(
+            code,
             TestContext.Current.CancellationToken
         );
         PatchType actual = symbol.GetPatchType();
@@ -53,17 +42,9 @@ public class TestSymbolExtensions
                 [|public void Postfix()|] { }
             }
             """;
-        TestFileMarkupParser.GetSpan(code, out string finalCode, out TextSpan span);
 
-        Document doc = await RoslynHelpers.CreateDocumentAsync(
-            finalCode,
-            MefHostServices.DefaultHost,
-            TestContext.Current.CancellationToken
-        );
-
-        IMethodSymbol symbol = await RoslynHelpers.AssertSpanIsMethodAndGetAsync(
-            doc,
-            span,
+        IMethodSymbol symbol = await RoslynHelpers.GetMethodSymbolFromSourceAsync(
+            code,
             TestContext.Current.CancellationToken
         );
         PatchType actual = symbol.GetPatchType();
@@ -84,17 +65,9 @@ public class TestSymbolExtensions
                 [|public void Transpiler()|] { }
             }
             """;
-        TestFileMarkupParser.GetSpan(code, out string finalCode, out TextSpan span);
 
-        Document doc = await RoslynHelpers.CreateDocumentAsync(
-            finalCode,
-            MefHostServices.DefaultHost,
-            TestContext.Current.CancellationToken
-        );
-
-        IMethodSymbol symbol = await RoslynHelpers.AssertSpanIsMethodAndGetAsync(
-            doc,
-            span,
+        IMethodSymbol symbol = await RoslynHelpers.GetMethodSymbolFromSourceAsync(
+            code,
             TestContext.Current.CancellationToken
         );
         PatchType actual = symbol.GetPatchType();
@@ -115,17 +88,9 @@ public class TestSymbolExtensions
                 [|public void MyCustomName()|] { }
             }
             """;
-        TestFileMarkupParser.GetSpan(code, out string finalCode, out TextSpan span);
 
-        Document doc = await RoslynHelpers.CreateDocumentAsync(
-            finalCode,
-            MefHostServices.DefaultHost,
-            TestContext.Current.CancellationToken
-        );
-
-        IMethodSymbol symbol = await RoslynHelpers.AssertSpanIsMethodAndGetAsync(
-            doc,
-            span,
+        IMethodSymbol symbol = await RoslynHelpers.GetMethodSymbolFromSourceAsync(
+            code,
             TestContext.Current.CancellationToken
         );
         PatchType actual = symbol.GetPatchType();
@@ -146,17 +111,9 @@ public class TestSymbolExtensions
                 [|public void MyCustomName()|] { }
             }
             """;
-        TestFileMarkupParser.GetSpan(code, out string finalCode, out TextSpan span);
 
-        Document doc = await RoslynHelpers.CreateDocumentAsync(
-            finalCode,
-            MefHostServices.DefaultHost,
-            TestContext.Current.CancellationToken
-        );
-
-        IMethodSymbol symbol = await RoslynHelpers.AssertSpanIsMethodAndGetAsync(
-            doc,
-            span,
+        IMethodSymbol symbol = await RoslynHelpers.GetMethodSymbolFromSourceAsync(
+            code,
             TestContext.Current.CancellationToken
         );
         PatchType actual = symbol.GetPatchType();
@@ -179,17 +136,9 @@ public class TestSymbolExtensions
                 [|public void MyCustomName()|] { }
             }
             """;
-        TestFileMarkupParser.GetSpan(code, out string finalCode, out TextSpan span);
 
-        Document doc = await RoslynHelpers.CreateDocumentAsync(
-            finalCode,
-            MefHostServices.DefaultHost,
-            TestContext.Current.CancellationToken
-        );
-
-        IMethodSymbol symbol = await RoslynHelpers.AssertSpanIsMethodAndGetAsync(
-            doc,
-            span,
+        IMethodSymbol symbol = await RoslynHelpers.GetMethodSymbolFromSourceAsync(
+            code,
             TestContext.Current.CancellationToken
         );
         PatchType actual = symbol.GetPatchType();
@@ -211,17 +160,9 @@ public class TestSymbolExtensions
                 [|public void MyCustomName()|] { }
             }
             """;
-        TestFileMarkupParser.GetSpan(code, out string finalCode, out TextSpan span);
 
-        Document doc = await RoslynHelpers.CreateDocumentAsync(
-            finalCode,
-            MefHostServices.DefaultHost,
-            TestContext.Current.CancellationToken
-        );
-
-        IMethodSymbol symbol = await RoslynHelpers.AssertSpanIsMethodAndGetAsync(
-            doc,
-            span,
+        IMethodSymbol symbol = await RoslynHelpers.GetMethodSymbolFromSourceAsync(
+            code,
             TestContext.Current.CancellationToken
         );
         PatchType actual = symbol.GetPatchType();
