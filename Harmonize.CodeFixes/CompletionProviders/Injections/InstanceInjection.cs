@@ -12,7 +12,8 @@ public class InstanceInjection : IInjection
 
     public bool HasCompletions(HarmonyPatchContext context)
     {
-        return context.TargetMethod != null
+        return (context.PatchType == PatchType.Prefix || context.PatchType == PatchType.Postfix)
+            && context.TargetMethod != null
             && !context.TargetMethod.IsAmbiguous
             && !context.TargetMethod.Value.IsStatic;
     }

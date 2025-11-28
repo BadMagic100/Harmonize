@@ -119,4 +119,33 @@ public partial class TestHarmonyInjectionCompletionProvider
             TestContext.Current.CancellationToken
         );
     }
+
+    [Fact(DisplayName = "InstanceInjection should not provide injection for Transpiler patches")]
+    public async Task InstanceInjection_NoInjectionForTranspiler()
+    {
+        string code = /*lang=c#-test*/
+            """
+            using HarmonyLib;
+
+            public class Patched
+            {
+                public void PatchMe() { }
+            }
+
+            [HarmonyPatch]
+            public static class Patches
+            {
+                [HarmonyPatch(typeof(Patched), nameof(Patched.PatchMe))]
+                [HarmonyTranspiler]
+                public static void PatchMeTranspiler(_$$) { }
+            }
+            """;
+
+        CSharpCompletionProviderTest<HarmonyInjectionCompletionProvider> test = new();
+        await test.ExpectCompletionsMatching(
+            code,
+            NotProducedByInjection<InstanceInjection>,
+            TestContext.Current.CancellationToken
+        );
+    }
 }
