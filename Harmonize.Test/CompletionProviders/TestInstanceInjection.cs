@@ -1,12 +1,13 @@
 ﻿using Harmonize.CompletionProviders;
 using Harmonize.CompletionProviders.Injections;
 using Harmonize.Test.CompletionProviders.Scaffolding;
+using Harmonize.Test.Helper;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Tags;
 
 namespace Harmonize.Test.CompletionProviders;
 
-public partial class TestHarmonyInjectionCompletionProvider
+public class TestInstanceInjection
 {
     [Fact(DisplayName = "InstanceInjection should provide injection for instance method")]
     public async Task InstanceInjection_ProvidesInjectionForInstanceMethod()
@@ -115,7 +116,7 @@ public partial class TestHarmonyInjectionCompletionProvider
         CSharpCompletionProviderTest<HarmonyInjectionCompletionProvider> test = new();
         await test.ExpectCompletionsMatching(
             code,
-            NotProducedByInjection<InstanceInjection>,
+            InjectionTestHelper.NotProducedByInjection<InstanceInjection>,
             TestContext.Current.CancellationToken
         );
     }
@@ -144,7 +145,7 @@ public partial class TestHarmonyInjectionCompletionProvider
         CSharpCompletionProviderTest<HarmonyInjectionCompletionProvider> test = new();
         await test.ExpectCompletionsMatching(
             code,
-            NotProducedByInjection<InstanceInjection>,
+            InjectionTestHelper.NotProducedByInjection<InstanceInjection>,
             TestContext.Current.CancellationToken
         );
     }

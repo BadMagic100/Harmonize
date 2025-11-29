@@ -13,7 +13,11 @@ namespace Harmonize.CompletionProviders;
 public class HarmonyInjectionCompletionProvider : CompletionProvider
 {
     public const string PROP_INJECTION_NAME = "InjectionName";
-    private static readonly IEnumerable<IInjection> injections = [new InstanceInjection()];
+    private static readonly IEnumerable<IInjection> injections =
+    [
+        new InstanceInjection(),
+        new ArgumentInjection(),
+    ];
     private static readonly ImmutableDictionary<string, IInjection> injectionLookup =
         injections.ToImmutableDictionary(x => x.GetType().Name);
 

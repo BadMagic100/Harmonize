@@ -9,7 +9,7 @@ public interface IInjection
 {
     public bool HasCompletions(HarmonyPatchContext context);
     public ImmutableArray<CompletionItem> GetCompletions(
-        HarmonyPatchContext ctx,
+        HarmonyPatchContext context,
         SemanticModel semanticModel,
         TextSpan completionSpan
     );

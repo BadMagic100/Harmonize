@@ -8,8 +8,6 @@ namespace Harmonize.CompletionProviders.Injections;
 
 public class InstanceInjection : IInjection
 {
-    public string Name => nameof(InstanceInjection);
-
     public bool HasCompletions(HarmonyPatchContext context)
     {
         return (context.PatchType == PatchType.Prefix || context.PatchType == PatchType.Postfix)
@@ -19,15 +17,14 @@ public class InstanceInjection : IInjection
     }
 
     public ImmutableArray<CompletionItem> GetCompletions(
-        HarmonyPatchContext ctx,
+        HarmonyPatchContext context,
         SemanticModel semanticModel,
         TextSpan originalSpan
     )
     {
-        string displayPrefix = QualifiedNameHelper.GetMinimallyQualifiedTypeName(
-            ctx.TargetType,
+        string displayPrefix = context.TargetType.ToMinimalDisplayString(
             semanticModel,
-            originalSpan
+            originalSpan.Start
         );
         CompletionItem item = CompletionItem
             .Create(

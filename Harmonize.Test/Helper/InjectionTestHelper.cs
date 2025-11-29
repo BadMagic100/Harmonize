@@ -2,11 +2,11 @@
 using Harmonize.CompletionProviders.Injections;
 using Microsoft.CodeAnalysis.Completion;
 
-namespace Harmonize.Test.CompletionProviders;
+namespace Harmonize.Test.Helper;
 
-public partial class TestHarmonyInjectionCompletionProvider
+public static class InjectionTestHelper
 {
-    public bool NotProducedByInjection<T>(CompletionItem item)
+    public static bool NotProducedByInjection<T>(CompletionItem item)
         where T : IInjection
     {
         string injectionName = typeof(T).Name;
