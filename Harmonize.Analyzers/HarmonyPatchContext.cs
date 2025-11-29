@@ -85,12 +85,12 @@ public record HarmonyPatchContext(
         INamedTypeSymbol declaringType,
         string name,
         MethodKind kind,
-        ImmutableArray<INamedTypeSymbol>? argTypes,
-        ImmutableArray<ArgumentKind>? argKinds
+        ImmutableEquatableArray<INamedTypeSymbol>? argTypes,
+        ImmutableEquatableArray<ArgumentKind>? argKinds
     )
     {
         // shortcut: if argTypes and argKinds are both non-null and don't match in length nothing will save it
-        if (argTypes != null && argKinds != null && argTypes.Value.Length != argKinds.Value.Length)
+        if (argTypes != null && argKinds != null && argTypes.Count != argKinds.Count)
         {
             return ImmutableArray<IMethodSymbol>.Empty;
         }
@@ -116,27 +116,27 @@ public record HarmonyPatchContext(
 
         if (argTypes != null)
         {
-            candidates = candidates.Where(m => AllArgTypesMatch(m.Parameters, argTypes.Value));
+            candidates = candidates.Where(m => AllArgTypesMatch(m.Parameters, argTypes));
         }
         if (argKinds != null)
         {
-            candidates = candidates.Where(m => AllArgKindsMatch(m.Parameters, argKinds.Value));
+            candidates = candidates.Where(m => AllArgKindsMatch(m.Parameters, argKinds));
         }
 
         return candidates.ToImmutableArray();
     }
 
     private static bool AllArgTypesMatch(
-        ImmutableArray<IParameterSymbol> parameters,
-        ImmutableArray<INamedTypeSymbol> types
+        ImmutableEquatableArray<IParameterSymbol> parameters,
+        ImmutableEquatableArray<INamedTypeSymbol> types
     )
     {
-        if (parameters.Length != types.Length)
+        if (parameters.Count != types.Count)
         {
             return false;
         }
 
-        for (int i = 0; i < parameters.Length; i++)
+        for (int i = 0; i < parameters.Count; i++)
         {
             if (!parameters[i].Type.Equals(types[i], SymbolEqualityComparer.Default))
             {
@@ -147,16 +147,16 @@ public record HarmonyPatchContext(
     }
 
     private static bool AllArgKindsMatch(
-        ImmutableArray<IParameterSymbol> parameters,
-        ImmutableArray<ArgumentKind> kinds
+        ImmutableEquatableArray<IParameterSymbol> parameters,
+        ImmutableEquatableArray<ArgumentKind> kinds
     )
     {
-        if (parameters.Length != kinds.Length)
+        if (parameters.Count != kinds.Count)
         {
             return false;
         }
 
-        for (int i = 0; i < parameters.Length; i++)
+        for (int i = 0; i < parameters.Count; i++)
         {
             IParameterSymbol p = parameters[i];
             ArgumentKind k = kinds[i];

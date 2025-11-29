@@ -26,12 +26,12 @@ public enum ArgumentKind
 
 file static class EnumMapping
 {
-    public static MethodKind ParseMethodKind(ITypeSymbol enumType, object? constantValue)
+    public static MethodKind ParseMethodKind(ITypeSymbol enumType, int constantValue)
     {
         IFieldSymbol? matchedValue = enumType
             .GetMembers()
             .OfType<IFieldSymbol>()
-            .Where(f => f.HasConstantValue && f.ConstantValue == constantValue)
+            .Where(f => f.HasConstantValue && f.ConstantValue is int i && i == constantValue)
             .FirstOrDefault();
         return matchedValue?.Name switch
         {
@@ -47,17 +47,17 @@ file static class EnumMapping
         ImmutableArray<TypedConstant> values
     )
     {
-        Dictionary<object?, string> lookup = enumType
+        Dictionary<int, string> lookup = enumType
             .GetMembers()
             .OfType<IFieldSymbol>()
-            .Where(f => f.HasConstantValue)
-            .ToDictionary(f => f.ConstantValue, f => f.Name);
+            .Where(f => f.HasConstantValue && f.ConstantValue is int)
+            .ToDictionary(f => (int)f.ConstantValue!, f => f.Name);
         ImmutableArray<ArgumentKind>.Builder builder = ImmutableArray.CreateBuilder<ArgumentKind>(
             values.Length
         );
         foreach (TypedConstant value in values)
         {
-            if (lookup.TryGetValue(value.Value, out string name))
+            if (lookup.TryGetValue((int)value.Value!, out string name))
             {
                 builder.Add(
                     name switch
@@ -82,8 +82,8 @@ public record HarmonyPatchAttributeData(
     MaybeAmbiguous<INamedTypeSymbol>? TargetType,
     MaybeAmbiguous<string>? TargetMethodName,
     MaybeAmbiguous<MethodKind>? MethodKind,
-    MaybeAmbiguous<ImmutableArray<INamedTypeSymbol>>? ArgumentTypes,
-    MaybeAmbiguous<ImmutableArray<ArgumentKind>>? ArgumentKinds
+    MaybeAmbiguous<ImmutableEquatableArray<INamedTypeSymbol>>? ArgumentTypes,
+    MaybeAmbiguous<ImmutableEquatableArray<ArgumentKind>>? ArgumentKinds
 )
 {
     public static HarmonyPatchAttributeData? ExtractFromSymbol(ISymbol symbol)
@@ -161,8 +161,8 @@ public record HarmonyPatchAttributeData(
         INamedTypeSymbol? declaringType;
         string? methodName;
         MethodKind? methodType;
-        ImmutableArray<INamedTypeSymbol>? argumentTypes;
-        ImmutableArray<ArgumentKind>? argumentKinds;
+        ImmutableEquatableArray<INamedTypeSymbol>? argumentTypes;
+        ImmutableEquatableArray<ArgumentKind>? argumentKinds;
 
         if (args.Length == 1)
         {
@@ -327,12 +327,16 @@ public record HarmonyPatchAttributeData(
         );
         MaybeAmbiguous<MethodKind>? candidateMethodKinds =
             MaybeAmbiguous<MethodKind>.MergeSymmetric(a.MethodKind, b.MethodKind);
-        MaybeAmbiguous<ImmutableArray<INamedTypeSymbol>>? candidateArgumentTypes = MaybeAmbiguous<
-            ImmutableArray<INamedTypeSymbol>
-        >.MergeSymmetric(a.ArgumentTypes, b.ArgumentTypes);
-        MaybeAmbiguous<ImmutableArray<ArgumentKind>>? candidateArgumentKinds = MaybeAmbiguous<
-            ImmutableArray<ArgumentKind>
-        >.MergeSymmetric(a.ArgumentKinds, b.ArgumentKinds);
+        MaybeAmbiguous<ImmutableEquatableArray<INamedTypeSymbol>>? candidateArgumentTypes =
+            MaybeAmbiguous<ImmutableEquatableArray<INamedTypeSymbol>>.MergeSymmetric(
+                a.ArgumentTypes,
+                b.ArgumentTypes
+            );
+        MaybeAmbiguous<ImmutableEquatableArray<ArgumentKind>>? candidateArgumentKinds =
+            MaybeAmbiguous<ImmutableEquatableArray<ArgumentKind>>.MergeSymmetric(
+                a.ArgumentKinds,
+                b.ArgumentKinds
+            );
 
         return new HarmonyPatchAttributeData(
             candidateTypes,
@@ -354,7 +358,7 @@ public record HarmonyPatchAttributeData(
                 == "global::HarmonyLib.MethodType"
         )
         {
-            methodType = EnumMapping.ParseMethodKind(arg.Type, arg.Value);
+            methodType = EnumMapping.ParseMethodKind(arg.Type, (int)arg.Value!);
             return true;
         }
 
@@ -395,7 +399,7 @@ public record HarmonyPatchAttributeData(
 
     private static bool TryReadTypeArray(
         TypedConstant arg,
-        [NotNullWhen(true)] out ImmutableArray<INamedTypeSymbol>? typeArray
+        [NotNullWhen(true)] out ImmutableEquatableArray<INamedTypeSymbol>? typeArray
     )
     {
         if (
@@ -415,7 +419,7 @@ public record HarmonyPatchAttributeData(
 
     private static bool TryReadArgumentTypeArray(
         TypedConstant arg,
-        [NotNullWhen(true)] out ImmutableArray<ArgumentKind>? argumentTypeArray
+        [NotNullWhen(true)] out ImmutableEquatableArray<ArgumentKind>? argumentTypeArray
     )
     {
         if (

@@ -6,17 +6,17 @@ namespace Harmonize;
 
 public class MaybeAmbiguous<T> : IEquatable<MaybeAmbiguous<T>>
 {
-    private readonly ImmutableArray<T> candidates;
+    private readonly ImmutableEquatableArray<T> candidates;
 
-    private MaybeAmbiguous(ImmutableArray<T> candidates)
+    private MaybeAmbiguous(ImmutableEquatableArray<T> candidates)
     {
         this.candidates = candidates;
     }
 
-    public bool IsAmbiguous => candidates.Length != 1;
+    public bool IsAmbiguous => candidates.Count != 1;
     public T Value =>
         IsAmbiguous ? throw new InvalidOperationException("Value is ambiguous") : candidates[0];
-    public ImmutableArray<T> Candidates => candidates;
+    public ImmutableEquatableArray<T> Candidates => candidates;
 
     public static MaybeAmbiguous<T>? MergeSymmetric(MaybeAmbiguous<T>? a, MaybeAmbiguous<T>? b)
     {
@@ -30,7 +30,7 @@ public class MaybeAmbiguous<T> : IEquatable<MaybeAmbiguous<T>>
         }
 
         ImmutableArray<T>.Builder builder = ImmutableArray.CreateBuilder<T>(
-            a.candidates.Length + b.candidates.Length
+            a.candidates.Count + b.candidates.Count
         );
         builder.AddRange(a.candidates);
         builder.AddRange(b.candidates);
@@ -49,18 +49,14 @@ public class MaybeAmbiguous<T> : IEquatable<MaybeAmbiguous<T>>
 
     public bool Equals(MaybeAmbiguous<T> other)
     {
-        if (candidates.Length != other.candidates.Length)
-        {
-            return false;
-        }
-        for (int i = 0; i < candidates.Length; i++)
-        {
-            if (candidates[i]?.Equals(other.candidates[i]) == false)
-            {
-                return false;
-            }
-        }
-        return true;
+        return candidates.Equals(other.candidates);
+    }
+
+    public override string ToString()
+    {
+        return IsAmbiguous
+            ? $"Ambiguous[{string.Join(", ", candidates)}]"
+            : Value?.ToString() ?? "";
     }
 
     public static implicit operator MaybeAmbiguous<T>(T orig)
