@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -22,6 +23,40 @@ public enum ArgumentKind
     Out,
     Ref,
     Unsupported,
+}
+
+public record ArgumentDescriptor(INamedTypeSymbol Type, ArgumentKind Kind = ArgumentKind.Normal)
+{
+    public static ImmutableEquatableArray<ArgumentDescriptor> GetDescriptors(
+        ImmutableEquatableArray<INamedTypeSymbol> types
+    )
+    {
+        ImmutableArray<ArgumentDescriptor>.Builder builder =
+            ImmutableArray.CreateBuilder<ArgumentDescriptor>(types.Count);
+        foreach (INamedTypeSymbol type in types)
+        {
+            builder.Add(new ArgumentDescriptor(type));
+        }
+        return builder.ToImmutable();
+    }
+
+    public static ImmutableEquatableArray<ArgumentDescriptor> GetDescriptors(
+        ImmutableEquatableArray<INamedTypeSymbol> types,
+        ImmutableEquatableArray<ArgumentKind> kinds
+    )
+    {
+        if (types.Count != kinds.Count)
+        {
+            throw new ArgumentException("types and kinds must have same length");
+        }
+        ImmutableArray<ArgumentDescriptor>.Builder builder =
+            ImmutableArray.CreateBuilder<ArgumentDescriptor>(types.Count);
+        for (int i = 0; i < types.Count; i++)
+        {
+            builder.Add(new ArgumentDescriptor(types[i], kinds[i]));
+        }
+        return builder.ToImmutable();
+    }
 }
 
 file static class EnumMapping
@@ -82,8 +117,7 @@ public record HarmonyPatchAttributeData(
     MaybeAmbiguous<INamedTypeSymbol>? TargetType,
     MaybeAmbiguous<string>? TargetMethodName,
     MaybeAmbiguous<MethodKind>? MethodKind,
-    MaybeAmbiguous<ImmutableEquatableArray<INamedTypeSymbol>>? ArgumentTypes,
-    MaybeAmbiguous<ImmutableEquatableArray<ArgumentKind>>? ArgumentKinds
+    MaybeAmbiguous<ImmutableEquatableArray<ArgumentDescriptor>>? Arguments
 )
 {
     public static HarmonyPatchAttributeData? ExtractFromSymbol(ISymbol symbol)
@@ -144,8 +178,7 @@ public record HarmonyPatchAttributeData(
             TargetType ?? other.TargetType,
             TargetMethodName ?? other.TargetMethodName,
             MethodKind ?? other.MethodKind,
-            ArgumentTypes ?? other.ArgumentTypes,
-            ArgumentKinds ?? other.ArgumentKinds
+            Arguments ?? other.Arguments
         );
     }
 
@@ -155,7 +188,7 @@ public record HarmonyPatchAttributeData(
         ImmutableArray<TypedConstant> args = data.ConstructorArguments;
         if (args.Length == 0)
         {
-            return new HarmonyPatchAttributeData(null, null, null, null, null);
+            return new HarmonyPatchAttributeData(null, null, null, null);
         }
 
         INamedTypeSymbol? declaringType;
@@ -168,19 +201,19 @@ public record HarmonyPatchAttributeData(
         {
             if (TryReadMethodType(args[0], out methodType))
             {
-                return new(null, null, methodType, null, null);
+                return new(null, null, methodType, null);
             }
             else if (TryReadString(args[0], out methodName))
             {
-                return new(null, methodName, null, null, null);
+                return new(null, methodName, null, null);
             }
             else if (TryReadType(args[0], out declaringType))
             {
-                return new(declaringType.ToMA(), null, null, null, null);
+                return new(declaringType.ToMA(), null, null, null);
             }
             else if (TryReadTypeArray(args[0], out argumentTypes))
             {
-                return new(null, null, null, argumentTypes, null);
+                return new(null, null, null, ArgumentDescriptor.GetDescriptors(argumentTypes));
             }
         }
         else if (args.Length == 2)
@@ -189,40 +222,60 @@ public record HarmonyPatchAttributeData(
             {
                 if (TryReadTypeArray(args[1], out argumentTypes))
                 {
-                    return new(null, null, methodType, argumentTypes, null);
+                    return new(
+                        null,
+                        null,
+                        methodType,
+                        ArgumentDescriptor.GetDescriptors(argumentTypes)
+                    );
                 }
             }
             else if (TryReadString(args[0], out methodName))
             {
                 if (TryReadMethodType(args[1], out methodType))
                 {
-                    return new(null, methodName, methodType, null, null);
+                    return new(null, methodName, methodType, null);
                 }
                 else if (TryReadTypeArray(args[1], out argumentTypes))
                 {
-                    return new(null, methodName, null, argumentTypes, null);
+                    return new(
+                        null,
+                        methodName,
+                        null,
+                        ArgumentDescriptor.GetDescriptors(argumentTypes)
+                    );
                 }
             }
             else if (TryReadType(args[0], out declaringType))
             {
                 if (TryReadMethodType(args[1], out methodType))
                 {
-                    return new(declaringType.ToMA(), null, methodType, null, null);
+                    return new(declaringType.ToMA(), null, methodType, null);
                 }
                 else if (TryReadString(args[1], out methodName))
                 {
-                    return new(declaringType.ToMA(), methodName, null, null, null);
+                    return new(declaringType.ToMA(), methodName, null, null);
                 }
                 else if (TryReadTypeArray(args[1], out argumentTypes))
                 {
-                    return new(declaringType.ToMA(), null, null, argumentTypes, null);
+                    return new(
+                        declaringType.ToMA(),
+                        null,
+                        null,
+                        ArgumentDescriptor.GetDescriptors(argumentTypes)
+                    );
                 }
             }
             else if (TryReadTypeArray(args[0], out argumentTypes))
             {
                 if (TryReadArgumentTypeArray(args[1], out argumentKinds))
                 {
-                    return new(null, null, null, argumentTypes, argumentKinds);
+                    return new(
+                        null,
+                        null,
+                        null,
+                        ArgumentDescriptor.GetDescriptors(argumentTypes, argumentKinds)
+                    );
                 }
             }
         }
@@ -234,7 +287,12 @@ public record HarmonyPatchAttributeData(
                 {
                     if (TryReadArgumentTypeArray(args[2], out argumentKinds))
                     {
-                        return new(null, null, methodType, argumentTypes, argumentKinds);
+                        return new(
+                            null,
+                            null,
+                            methodType,
+                            ArgumentDescriptor.GetDescriptors(argumentTypes, argumentKinds)
+                        );
                     }
                 }
             }
@@ -244,13 +302,18 @@ public record HarmonyPatchAttributeData(
                 {
                     // intentionally doesn't support the (string, string, MethodType) overload because we'd have to search the whole
                     // semantic model to get the declaring type from the name
-                    return new(null, null, null, null, null);
+                    return new(null, null, null, null);
                 }
                 else if (TryReadTypeArray(args[1], out argumentTypes))
                 {
                     if (TryReadArgumentTypeArray(args[2], out argumentKinds))
                     {
-                        return new(null, methodName, null, argumentTypes, argumentKinds);
+                        return new(
+                            null,
+                            methodName,
+                            null,
+                            ArgumentDescriptor.GetDescriptors(argumentTypes, argumentKinds)
+                        );
                     }
                 }
             }
@@ -260,18 +323,28 @@ public record HarmonyPatchAttributeData(
                 {
                     if (TryReadTypeArray(args[2], out argumentTypes))
                     {
-                        return new(declaringType.ToMA(), null, methodType, argumentTypes, null);
+                        return new(
+                            declaringType.ToMA(),
+                            null,
+                            methodType,
+                            ArgumentDescriptor.GetDescriptors(argumentTypes)
+                        );
                     }
                 }
                 else if (TryReadString(args[1], out methodName))
                 {
                     if (TryReadMethodType(args[2], out methodType))
                     {
-                        return new(declaringType.ToMA(), methodName, methodType, null, null);
+                        return new(declaringType.ToMA(), methodName, methodType, null);
                     }
                     else if (TryReadTypeArray(args[2], out argumentTypes))
                     {
-                        return new(declaringType.ToMA(), methodName, null, argumentTypes, null);
+                        return new(
+                            declaringType.ToMA(),
+                            methodName,
+                            null,
+                            ArgumentDescriptor.GetDescriptors(argumentTypes)
+                        );
                     }
                 }
             }
@@ -294,8 +367,7 @@ public record HarmonyPatchAttributeData(
                         declaringType.ToMA(),
                         null,
                         methodType,
-                        argumentTypes,
-                        argumentKinds
+                        ArgumentDescriptor.GetDescriptors(argumentTypes, argumentKinds)
                     );
                 }
                 else if (TryReadString(args[1], out methodName))
@@ -304,14 +376,13 @@ public record HarmonyPatchAttributeData(
                         declaringType.ToMA(),
                         methodName,
                         null,
-                        argumentTypes,
-                        argumentKinds
+                        ArgumentDescriptor.GetDescriptors(argumentTypes, argumentKinds)
                     );
                 }
             }
         }
 
-        return new HarmonyPatchAttributeData(null, null, null, null, null);
+        return new HarmonyPatchAttributeData(null, null, null, null);
     }
 
     private static HarmonyPatchAttributeData MergeSymmetric(
@@ -327,23 +398,17 @@ public record HarmonyPatchAttributeData(
         );
         MaybeAmbiguous<MethodKind>? candidateMethodKinds =
             MaybeAmbiguous<MethodKind>.MergeSymmetric(a.MethodKind, b.MethodKind);
-        MaybeAmbiguous<ImmutableEquatableArray<INamedTypeSymbol>>? candidateArgumentTypes =
-            MaybeAmbiguous<ImmutableEquatableArray<INamedTypeSymbol>>.MergeSymmetric(
-                a.ArgumentTypes,
-                b.ArgumentTypes
-            );
-        MaybeAmbiguous<ImmutableEquatableArray<ArgumentKind>>? candidateArgumentKinds =
-            MaybeAmbiguous<ImmutableEquatableArray<ArgumentKind>>.MergeSymmetric(
-                a.ArgumentKinds,
-                b.ArgumentKinds
+        MaybeAmbiguous<ImmutableEquatableArray<ArgumentDescriptor>>? candidateArguments =
+            MaybeAmbiguous<ImmutableEquatableArray<ArgumentDescriptor>>.MergeSymmetric(
+                a.Arguments,
+                b.Arguments
             );
 
         return new HarmonyPatchAttributeData(
             candidateTypes,
             candidateMethodNames,
             candidateMethodKinds,
-            candidateArgumentTypes,
-            candidateArgumentKinds
+            candidateArguments
         );
     }
 

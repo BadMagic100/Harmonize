@@ -43,7 +43,7 @@ public class TestHarmonyPatchAttributeData
             TestContext.Current.CancellationToken
         );
         HarmonyPatchAttributeData? actual = HarmonyPatchAttributeData.ExtractFromSymbol(symbol);
-        Assert.Equal(new HarmonyPatchAttributeData(null, null, null, null, null), actual);
+        Assert.Equal(new HarmonyPatchAttributeData(null, null, null, null), actual);
     }
 
     [Fact(
@@ -66,10 +66,7 @@ public class TestHarmonyPatchAttributeData
             TestContext.Current.CancellationToken
         );
         HarmonyPatchAttributeData? actual = HarmonyPatchAttributeData.ExtractFromSymbol(symbol);
-        Assert.Equal(
-            new HarmonyPatchAttributeData(null, null, MethodKind.Getter, null, null),
-            actual
-        );
+        Assert.Equal(new HarmonyPatchAttributeData(null, null, MethodKind.Getter, null), actual);
     }
 
     [Fact(
@@ -96,8 +93,7 @@ public class TestHarmonyPatchAttributeData
             null,
             null,
             MethodKind.Getter,
-            ImmutableEquatableArray.Create(symbol.ContainingType),
-            null
+            ImmutableEquatableArray.Create(new ArgumentDescriptor(symbol.ContainingType))
         );
         Assert.Equal(expected, actual);
     }
@@ -113,7 +109,7 @@ public class TestHarmonyPatchAttributeData
 
             class Patches
             {
-                [HarmonyPatch(MethodType.Getter, [typeof(Patches)], [ArgumentType.Normal])]
+                [HarmonyPatch(MethodType.Getter, [typeof(Patches)], [ArgumentType.Ref])]
                 [|public static void Prefix()|] { }
             }
             """;
@@ -126,8 +122,9 @@ public class TestHarmonyPatchAttributeData
             null,
             null,
             MethodKind.Getter,
-            ImmutableEquatableArray.Create(symbol.ContainingType),
-            ImmutableEquatableArray.Create(ArgumentKind.Normal)
+            ImmutableEquatableArray.Create(
+                new ArgumentDescriptor(symbol.ContainingType, ArgumentKind.Ref)
+            )
         );
         Assert.Equal(expected, actual);
     }
@@ -150,7 +147,7 @@ public class TestHarmonyPatchAttributeData
             TestContext.Current.CancellationToken
         );
         HarmonyPatchAttributeData? actual = HarmonyPatchAttributeData.ExtractFromSymbol(symbol);
-        HarmonyPatchAttributeData expected = new(null, "Foo", null, null, null);
+        HarmonyPatchAttributeData expected = new(null, "Foo", null, null);
         Assert.Equal(expected, actual);
     }
 
@@ -174,7 +171,7 @@ public class TestHarmonyPatchAttributeData
             TestContext.Current.CancellationToken
         );
         HarmonyPatchAttributeData? actual = HarmonyPatchAttributeData.ExtractFromSymbol(symbol);
-        HarmonyPatchAttributeData expected = new(null, "Foo", MethodKind.Getter, null, null);
+        HarmonyPatchAttributeData expected = new(null, "Foo", MethodKind.Getter, null);
         Assert.Equal(expected, actual);
     }
 
@@ -198,7 +195,7 @@ public class TestHarmonyPatchAttributeData
             TestContext.Current.CancellationToken
         );
         HarmonyPatchAttributeData? actual = HarmonyPatchAttributeData.ExtractFromSymbol(symbol);
-        HarmonyPatchAttributeData expected = new(null, null, null, null, null);
+        HarmonyPatchAttributeData expected = new(null, null, null, null);
         Assert.Equal(expected, actual);
     }
 
@@ -226,8 +223,7 @@ public class TestHarmonyPatchAttributeData
             null,
             "Foo",
             null,
-            ImmutableEquatableArray.Create(symbol.ContainingType),
-            null
+            ImmutableEquatableArray.Create(new ArgumentDescriptor(symbol.ContainingType))
         );
         Assert.Equal(expected, actual);
     }
@@ -243,7 +239,7 @@ public class TestHarmonyPatchAttributeData
 
             class Patches
             {
-                [HarmonyPatch("Foo", [typeof(Patches)], [ArgumentType.Normal])]
+                [HarmonyPatch("Foo", [typeof(Patches)], [ArgumentType.Ref])]
                 [|public static void Prefix()|] { }
             }
             """;
@@ -256,8 +252,9 @@ public class TestHarmonyPatchAttributeData
             null,
             "Foo",
             null,
-            ImmutableEquatableArray.Create(symbol.ContainingType),
-            ImmutableEquatableArray.Create(ArgumentKind.Normal)
+            ImmutableEquatableArray.Create(
+                new ArgumentDescriptor(symbol.ContainingType, ArgumentKind.Ref)
+            )
         );
         Assert.Equal(expected, actual);
     }
@@ -280,13 +277,7 @@ public class TestHarmonyPatchAttributeData
             TestContext.Current.CancellationToken
         );
         HarmonyPatchAttributeData? actual = HarmonyPatchAttributeData.ExtractFromSymbol(symbol);
-        HarmonyPatchAttributeData expected = new(
-            symbol.ContainingType.ToMA(),
-            null,
-            null,
-            null,
-            null
-        );
+        HarmonyPatchAttributeData expected = new(symbol.ContainingType.ToMA(), null, null, null);
         Assert.Equal(expected, actual);
     }
 
@@ -314,7 +305,6 @@ public class TestHarmonyPatchAttributeData
             symbol.ContainingType.ToMA(),
             null,
             MethodKind.Getter,
-            null,
             null
         );
         Assert.Equal(expected, actual);
@@ -344,8 +334,7 @@ public class TestHarmonyPatchAttributeData
             symbol.ContainingType.ToMA(),
             null,
             MethodKind.Getter,
-            ImmutableEquatableArray.Create(symbol.ContainingType),
-            null
+            ImmutableEquatableArray.Create(new ArgumentDescriptor(symbol.ContainingType))
         );
         Assert.Equal(expected, actual);
     }
@@ -361,7 +350,7 @@ public class TestHarmonyPatchAttributeData
 
             class Patches
             {
-                [HarmonyPatch(typeof(Patches), MethodType.Getter, [typeof(Patches)], [ArgumentType.Normal])]
+                [HarmonyPatch(typeof(Patches), MethodType.Getter, [typeof(Patches)], [ArgumentType.Ref])]
                 [|public static void Prefix()|] { }
             }
             """;
@@ -374,8 +363,9 @@ public class TestHarmonyPatchAttributeData
             symbol.ContainingType.ToMA(),
             null,
             MethodKind.Getter,
-            ImmutableEquatableArray.Create(symbol.ContainingType),
-            ImmutableEquatableArray.Create(ArgumentKind.Normal)
+            ImmutableEquatableArray.Create(
+                new ArgumentDescriptor(symbol.ContainingType, ArgumentKind.Ref)
+            )
         );
         Assert.Equal(expected, actual);
     }
@@ -400,13 +390,7 @@ public class TestHarmonyPatchAttributeData
             TestContext.Current.CancellationToken
         );
         HarmonyPatchAttributeData? actual = HarmonyPatchAttributeData.ExtractFromSymbol(symbol);
-        HarmonyPatchAttributeData expected = new(
-            symbol.ContainingType.ToMA(),
-            "Foo",
-            null,
-            null,
-            null
-        );
+        HarmonyPatchAttributeData expected = new(symbol.ContainingType.ToMA(), "Foo", null, null);
         Assert.Equal(expected, actual);
     }
 
@@ -434,7 +418,6 @@ public class TestHarmonyPatchAttributeData
             symbol.ContainingType.ToMA(),
             "Foo",
             MethodKind.Getter,
-            null,
             null
         );
         Assert.Equal(expected, actual);
@@ -464,8 +447,7 @@ public class TestHarmonyPatchAttributeData
             symbol.ContainingType.ToMA(),
             "Foo",
             null,
-            ImmutableEquatableArray.Create(symbol.ContainingType),
-            null
+            ImmutableEquatableArray.Create(new ArgumentDescriptor(symbol.ContainingType))
         );
         Assert.Equal(expected, actual);
     }
@@ -481,7 +463,7 @@ public class TestHarmonyPatchAttributeData
 
             class Patches
             {
-                [HarmonyPatch(typeof(Patches), "Foo", [typeof(Patches)], [ArgumentType.Normal])]
+                [HarmonyPatch(typeof(Patches), "Foo", [typeof(Patches)], [ArgumentType.Ref])]
                 [|public static void Prefix()|] { }
             }
             """;
@@ -494,8 +476,9 @@ public class TestHarmonyPatchAttributeData
             symbol.ContainingType.ToMA(),
             "Foo",
             null,
-            ImmutableEquatableArray.Create(symbol.ContainingType),
-            ImmutableEquatableArray.Create(ArgumentKind.Normal)
+            ImmutableEquatableArray.Create(
+                new ArgumentDescriptor(symbol.ContainingType, ArgumentKind.Ref)
+            )
         );
         Assert.Equal(expected, actual);
     }
@@ -524,8 +507,7 @@ public class TestHarmonyPatchAttributeData
             symbol.ContainingType.ToMA(),
             null,
             null,
-            ImmutableEquatableArray.Create(symbol.ContainingType),
-            null
+            ImmutableEquatableArray.Create(new ArgumentDescriptor(symbol.ContainingType))
         );
         Assert.Equal(expected, actual);
     }
@@ -552,8 +534,7 @@ public class TestHarmonyPatchAttributeData
             null,
             null,
             null,
-            ImmutableEquatableArray.Create(symbol.ContainingType),
-            null
+            ImmutableEquatableArray.Create(new ArgumentDescriptor(symbol.ContainingType))
         );
         Assert.Equal(expected, actual);
     }
@@ -569,7 +550,7 @@ public class TestHarmonyPatchAttributeData
 
             class Patches
             {
-                [HarmonyPatch([typeof(Patches)], [ArgumentType.Normal])]
+                [HarmonyPatch([typeof(Patches)], [ArgumentType.Ref])]
                 [|public static void Prefix()|] { }
             }
             """;
@@ -582,8 +563,9 @@ public class TestHarmonyPatchAttributeData
             null,
             null,
             null,
-            ImmutableEquatableArray.Create(symbol.ContainingType),
-            ImmutableEquatableArray.Create(ArgumentKind.Normal)
+            ImmutableEquatableArray.Create(
+                new ArgumentDescriptor(symbol.ContainingType, ArgumentKind.Ref)
+            )
         );
         Assert.Equal(expected, actual);
     }
@@ -615,7 +597,7 @@ public class TestHarmonyPatchAttributeData
             TestContext.Current.CancellationToken
         );
         HarmonyPatchAttributeData? actual = HarmonyPatchAttributeData.ExtractFromSymbol(symbol);
-        HarmonyPatchAttributeData expected = new(null, null, mapped, null, null);
+        HarmonyPatchAttributeData expected = new(null, null, mapped, null);
         Assert.Equal(expected, actual);
     }
 
@@ -645,8 +627,7 @@ public class TestHarmonyPatchAttributeData
             null,
             null,
             null,
-            ImmutableEquatableArray.Create(symbol.ContainingType),
-            ImmutableEquatableArray.Create(mapped)
+            ImmutableEquatableArray.Create(new ArgumentDescriptor(symbol.ContainingType, mapped))
         );
         Assert.Equal(expected, actual);
     }
@@ -663,7 +644,7 @@ public class TestHarmonyPatchAttributeData
                 [HarmonyPatch(typeof(Patches))]
                 [HarmonyPatch(nameof(Patches.Prefix))]
                 [HarmonyPatch(MethodType.Normal)]
-                [HarmonyPatch([typeof(string)], [ArgumentType.Normal])]
+                [HarmonyPatch([typeof(string)], [ArgumentType.Ref])]
                 [|public static void Prefix(string arg)|] { }
             }
             """;
@@ -676,8 +657,12 @@ public class TestHarmonyPatchAttributeData
             symbol.ContainingType.ToMA(),
             "Prefix",
             MethodKind.Normal,
-            ImmutableEquatableArray.Create((INamedTypeSymbol)symbol.Parameters[0].Type),
-            ImmutableEquatableArray.Create(ArgumentKind.Normal)
+            ImmutableEquatableArray.Create(
+                new ArgumentDescriptor(
+                    (INamedTypeSymbol)symbol.Parameters[0].Type,
+                    ArgumentKind.Ref
+                )
+            )
         );
         Assert.Equal(expected, actual);
     }
@@ -704,13 +689,7 @@ public class TestHarmonyPatchAttributeData
         );
         HarmonyPatchAttributeData? actual =
             HarmonyPatchAttributeData.ExtractFromMethodWithInheritance(symbol);
-        HarmonyPatchAttributeData expected = new(
-            symbol.ContainingType.ToMA(),
-            "Foo",
-            null,
-            null,
-            null
-        );
+        HarmonyPatchAttributeData expected = new(symbol.ContainingType.ToMA(), "Foo", null, null);
         Assert.Equal(@expected, actual);
     }
 
@@ -736,13 +715,7 @@ public class TestHarmonyPatchAttributeData
         );
         HarmonyPatchAttributeData? actual =
             HarmonyPatchAttributeData.ExtractFromMethodWithInheritance(symbol);
-        HarmonyPatchAttributeData expected = new(
-            symbol.ContainingType.ToMA(),
-            "Foo",
-            null,
-            null,
-            null
-        );
+        HarmonyPatchAttributeData expected = new(symbol.ContainingType.ToMA(), "Foo", null, null);
         Assert.Equal(@expected, actual);
     }
 
@@ -767,7 +740,7 @@ public class TestHarmonyPatchAttributeData
         );
         HarmonyPatchAttributeData? actual =
             HarmonyPatchAttributeData.ExtractFromMethodWithInheritance(symbol);
-        HarmonyPatchAttributeData expected = new(null, "Foo", null, null, null);
+        HarmonyPatchAttributeData expected = new(null, "Foo", null, null);
         Assert.Equal(@expected, actual);
     }
 
@@ -792,13 +765,7 @@ public class TestHarmonyPatchAttributeData
         );
         HarmonyPatchAttributeData? actual =
             HarmonyPatchAttributeData.ExtractFromMethodWithInheritance(symbol);
-        HarmonyPatchAttributeData expected = new(
-            symbol.ContainingType.ToMA(),
-            null,
-            null,
-            null,
-            null
-        );
+        HarmonyPatchAttributeData expected = new(symbol.ContainingType.ToMA(), null, null, null);
         Assert.Equal(@expected, actual);
     }
 

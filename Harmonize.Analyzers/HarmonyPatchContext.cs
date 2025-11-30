@@ -45,7 +45,7 @@ public record HarmonyPatchContext(
             return null;
         }
 
-        // apply defaults. default for argument type/kind is "whatever matches" which we can't represent here
+        // apply defaults. default for arguments is "whatever matches" which we can't represent here
         if (targetInfo.MethodKind == null)
         {
             targetInfo = targetInfo with { MethodKind = MethodKind.Normal };
@@ -59,8 +59,7 @@ public record HarmonyPatchContext(
             || targetInfo.TargetMethodName == null
             || targetInfo.TargetMethodName.IsAmbiguous
             || targetInfo.MethodKind.IsAmbiguous
-            || targetInfo.ArgumentTypes?.IsAmbiguous == true
-            || targetInfo.ArgumentKinds?.IsAmbiguous == true
+            || targetInfo.Arguments?.IsAmbiguous == true
         )
         {
             return null;
@@ -70,8 +69,7 @@ public record HarmonyPatchContext(
             targetInfo.TargetType.Value,
             targetInfo.TargetMethodName.Value,
             targetInfo.MethodKind.Value,
-            targetInfo.ArgumentTypes?.Value,
-            targetInfo.ArgumentKinds?.Value
+            targetInfo.Arguments?.Value
         );
 
         return new HarmonyPatchContext(
@@ -85,16 +83,9 @@ public record HarmonyPatchContext(
         INamedTypeSymbol declaringType,
         string name,
         MethodKind kind,
-        ImmutableEquatableArray<INamedTypeSymbol>? argTypes,
-        ImmutableEquatableArray<ArgumentKind>? argKinds
+        ImmutableEquatableArray<ArgumentDescriptor>? args
     )
     {
-        // shortcut: if argTypes and argKinds are both non-null and don't match in length nothing will save it
-        if (argTypes != null && argKinds != null && argTypes.Count != argKinds.Count)
-        {
-            return ImmutableArray<IMethodSymbol>.Empty;
-        }
-
         IEnumerable<IMethodSymbol> candidates = kind switch
         {
             MethodKind.Normal => declaringType
@@ -114,44 +105,20 @@ public record HarmonyPatchContext(
             _ => [],
         };
 
-        if (argTypes != null)
+        if (args != null)
         {
-            candidates = candidates.Where(m => AllArgTypesMatch(m.Parameters, argTypes));
-        }
-        if (argKinds != null)
-        {
-            candidates = candidates.Where(m => AllArgKindsMatch(m.Parameters, argKinds));
+            candidates = candidates.Where(m => AllArgsMatch(m.Parameters, args));
         }
 
         return candidates.ToImmutableArray();
     }
 
-    private static bool AllArgTypesMatch(
+    private static bool AllArgsMatch(
         ImmutableEquatableArray<IParameterSymbol> parameters,
-        ImmutableEquatableArray<INamedTypeSymbol> types
+        ImmutableEquatableArray<ArgumentDescriptor> args
     )
     {
-        if (parameters.Count != types.Count)
-        {
-            return false;
-        }
-
-        for (int i = 0; i < parameters.Count; i++)
-        {
-            if (!parameters[i].Type.Equals(types[i], SymbolEqualityComparer.Default))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static bool AllArgKindsMatch(
-        ImmutableEquatableArray<IParameterSymbol> parameters,
-        ImmutableEquatableArray<ArgumentKind> kinds
-    )
-    {
-        if (parameters.Count != kinds.Count)
+        if (parameters.Count != args.Count)
         {
             return false;
         }
@@ -159,7 +126,7 @@ public record HarmonyPatchContext(
         for (int i = 0; i < parameters.Count; i++)
         {
             IParameterSymbol p = parameters[i];
-            ArgumentKind k = kinds[i];
+            ArgumentKind k = args[i].Kind;
             if (k == ArgumentKind.Normal && p.RefKind != RefKind.None)
             {
                 return false;
@@ -169,6 +136,10 @@ public record HarmonyPatchContext(
                 return false;
             }
             if (k == ArgumentKind.Ref && p.RefKind != RefKind.Ref)
+            {
+                return false;
+            }
+            if (!p.Type.Equals(args[i].Type, SymbolEqualityComparer.Default))
             {
                 return false;
             }
