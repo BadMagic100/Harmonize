@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -65,85 +64,18 @@ public record HarmonyPatchContext(
             return null;
         }
 
-        ImmutableArray<IMethodSymbol> candidateMethods = GetCandidateMethods(
-            targetInfo.TargetType.Value,
-            targetInfo.TargetMethodName.Value,
-            targetInfo.MethodKind.Value,
-            targetInfo.Arguments?.Value
-        );
+        IEnumerable<IMethodSymbol> candidateMethods =
+            PatchCandidateMatcher.GetFullySpecifiedCandidates(
+                targetInfo.TargetType.Value,
+                targetInfo.TargetMethodName.Value,
+                targetInfo.MethodKind.Value,
+                targetInfo.Arguments?.Value
+            );
 
         return new HarmonyPatchContext(
             targetInfo.TargetType.Value,
             MaybeAmbiguous<IMethodSymbol>.FromEnumerable(candidateMethods),
             patchType
         );
-    }
-
-    private static ImmutableArray<IMethodSymbol> GetCandidateMethods(
-        INamedTypeSymbol declaringType,
-        string name,
-        MethodKind kind,
-        ImmutableEquatableArray<ArgumentDescriptor>? args
-    )
-    {
-        IEnumerable<IMethodSymbol> candidates = kind switch
-        {
-            MethodKind.Normal => declaringType
-                .GetMembers(name)
-                .OfType<IMethodSymbol>()
-                .Where(m => m.CanBeReferencedByName),
-            MethodKind.Getter => declaringType
-                .GetMembers(name)
-                .OfType<IPropertySymbol>()
-                .Where(p => p.GetMethod != null)
-                .Select(p => p.GetMethod!),
-            MethodKind.Setter => declaringType
-                .GetMembers(name)
-                .OfType<IPropertySymbol>()
-                .Where(p => p.SetMethod != null)
-                .Select(p => p.SetMethod!),
-            _ => [],
-        };
-
-        if (args != null)
-        {
-            candidates = candidates.Where(m => AllArgsMatch(m.Parameters, args));
-        }
-
-        return candidates.ToImmutableArray();
-    }
-
-    private static bool AllArgsMatch(
-        ImmutableEquatableArray<IParameterSymbol> parameters,
-        ImmutableEquatableArray<ArgumentDescriptor> args
-    )
-    {
-        if (parameters.Count != args.Count)
-        {
-            return false;
-        }
-
-        for (int i = 0; i < parameters.Count; i++)
-        {
-            IParameterSymbol p = parameters[i];
-            ArgumentKind k = args[i].Kind;
-            if (k == ArgumentKind.Normal && p.RefKind != RefKind.None)
-            {
-                return false;
-            }
-            if (k == ArgumentKind.Out && p.RefKind != RefKind.Out)
-            {
-                return false;
-            }
-            if (k == ArgumentKind.Ref && p.RefKind != RefKind.Ref)
-            {
-                return false;
-            }
-            if (!p.Type.Equals(args[i].Type, SymbolEqualityComparer.Default))
-            {
-                return false;
-            }
-        }
-        return true;
     }
 }
