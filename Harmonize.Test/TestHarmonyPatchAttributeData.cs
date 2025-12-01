@@ -658,10 +658,7 @@ public class TestHarmonyPatchAttributeData
             "Prefix",
             MethodKind.Normal,
             ImmutableEquatableArray.Create(
-                new ArgumentDescriptor(
-                    (INamedTypeSymbol)symbol.Parameters[0].Type,
-                    ArgumentKind.Ref
-                )
+                new ArgumentDescriptor(symbol.Parameters[0].Type, ArgumentKind.Ref)
             )
         );
         Assert.Equal(expected, actual);

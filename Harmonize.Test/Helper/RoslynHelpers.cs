@@ -9,15 +9,15 @@ namespace Harmonize.Test.Helper;
 
 internal static class RoslynHelpers
 {
+    public static ReferenceAssemblies DefaultReferences =>
+        ReferenceAssemblies.Default.AddPackages([new PackageIdentity("Lib.Harmony", "2.4.2")]);
+
     public static async Task<Document> CreateDocumentAsync(
         string code,
         MefHostServices host,
         CancellationToken cancellationToken
     )
     {
-        ReferenceAssemblies refs = ReferenceAssemblies.Default.AddPackages([
-            new PackageIdentity("Lib.Harmony", "2.4.2"),
-        ]);
         CSharpCompilationOptions options = new CSharpCompilationOptions(
             OutputKind.DynamicallyLinkedLibrary
         );
@@ -26,7 +26,7 @@ internal static class RoslynHelpers
             .AddProject("TestProject", LanguageNames.CSharp)
             .WithCompilationOptions(options)
             .AddMetadataReferences(
-                await refs.ResolveAsync(LanguageNames.CSharp, cancellationToken)
+                await DefaultReferences.ResolveAsync(LanguageNames.CSharp, cancellationToken)
             );
 
         Document doc = project.AddDocument("TestDocument", code);

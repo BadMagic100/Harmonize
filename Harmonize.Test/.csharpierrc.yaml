@@ -1,0 +1,3 @@
+# required because you can't ignore line endings in the code fix tests apparently
+# and it automatically uses windows line endings (unconfigurable afaict)
+endOfLine: auto

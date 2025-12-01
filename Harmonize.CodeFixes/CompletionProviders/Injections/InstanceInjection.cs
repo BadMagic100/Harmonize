@@ -27,23 +27,18 @@ public class InstanceInjection : IInjection
             originalSpan.Start
         );
         CompletionItem item = CompletionItem
-            .Create(
-                $"{displayPrefix} __instance",
-                tags: ImmutableArray.Create(WellKnownTags.Parameter)
-            )
+            .Create($"{displayPrefix} __instance", tags: [WellKnownTags.Parameter])
             .WithSortText("__instance")
             .WithFilterText("__instance");
-        return ImmutableArray.Create(item);
+        return [item];
     }
 
     public CompletionDescription DescribeCompletion(CompletionItem item)
     {
-        return CompletionDescription.Create(
-            ImmutableArray.Create(
-                new TaggedText(TextTags.Text, "The instance being patched. Acts similar to "),
-                new TaggedText(TextTags.Keyword, "this"),
-                new TaggedText(TextTags.Text, " from within the patched method")
-            )
-        );
+        return CompletionDescription.Create([
+            new TaggedText(TextTags.Text, "The instance being patched. Acts similar to "),
+            new TaggedText(TextTags.Keyword, "this"),
+            new TaggedText(TextTags.Text, " from within the patched method"),
+        ]);
     }
 }

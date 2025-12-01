@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace Harmonize;
 
@@ -38,6 +39,11 @@ public class ImmutableEquatableArray<T>(ImmutableArray<T> inner)
         return Equals(other);
     }
 
+    public override int GetHashCode()
+    {
+        return -154078401 + inner.Select(v => 23 * v?.GetHashCode() ?? 0).Sum();
+    }
+
     public bool Equals(ImmutableEquatableArray<T> other)
     {
         if (other.inner.Length != this.inner.Length)
@@ -62,6 +68,22 @@ public class ImmutableEquatableArray<T>(ImmutableArray<T> inner)
     public static implicit operator ImmutableEquatableArray<T>(ImmutableArray<T> inner)
     {
         return new ImmutableEquatableArray<T>(inner);
+    }
+
+    public static bool operator ==(
+        ImmutableEquatableArray<T>? left,
+        ImmutableEquatableArray<T>? right
+    )
+    {
+        return EqualityComparer<ImmutableEquatableArray<T>?>.Default.Equals(left, right);
+    }
+
+    public static bool operator !=(
+        ImmutableEquatableArray<T>? left,
+        ImmutableEquatableArray<T>? right
+    )
+    {
+        return !(left == right);
     }
 }
 

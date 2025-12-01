@@ -29,17 +29,9 @@ public class ArgumentInjection : IInjection
         for (int i = 0; i < target.Parameters.Length; i++)
         {
             IParameterSymbol param = target.Parameters[i];
-            string type;
-            if (param.Type is INamedTypeSymbol ns)
-            {
-                type = ns.ToMinimalDisplayString(semanticModel, completionSpan.Start);
-            }
-            else
-            {
-                type = "object";
-            }
+            string type = param.Type.ToMinimalDisplayString(semanticModel, completionSpan.Start);
             CompletionItem baseCompletion = CompletionItem
-                .Create(null, tags: ImmutableArray.Create(WellKnownTags.Parameter))
+                .Create(null, tags: [WellKnownTags.Parameter])
                 .AddProperty(PROP_PARAMETER_NAME, param.Name);
             builder.Add(
                 baseCompletion
@@ -59,12 +51,10 @@ public class ArgumentInjection : IInjection
 
     public CompletionDescription DescribeCompletion(CompletionItem item)
     {
-        return CompletionDescription.Create(
-            ImmutableArray.Create(
-                new TaggedText(TextTags.Text, "The "),
-                new TaggedText(TextTags.Parameter, item.Properties[PROP_PARAMETER_NAME]),
-                new TaggedText(TextTags.Text, " parameter")
-            )
-        );
+        return CompletionDescription.Create([
+            new TaggedText(TextTags.Text, "The "),
+            new TaggedText(TextTags.Parameter, item.Properties[PROP_PARAMETER_NAME]),
+            new TaggedText(TextTags.Text, " parameter"),
+        ]);
     }
 }

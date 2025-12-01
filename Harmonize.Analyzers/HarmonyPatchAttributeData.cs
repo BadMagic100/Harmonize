@@ -25,15 +25,15 @@ public enum ArgumentKind
     Unsupported,
 }
 
-public record ArgumentDescriptor(INamedTypeSymbol Type, ArgumentKind Kind = ArgumentKind.Normal)
+public record ArgumentDescriptor(ITypeSymbol Type, ArgumentKind? Kind = null)
 {
     public static ImmutableEquatableArray<ArgumentDescriptor> GetDescriptors(
-        ImmutableEquatableArray<INamedTypeSymbol> types
+        ImmutableEquatableArray<ITypeSymbol> types
     )
     {
         ImmutableArray<ArgumentDescriptor>.Builder builder =
             ImmutableArray.CreateBuilder<ArgumentDescriptor>(types.Count);
-        foreach (INamedTypeSymbol type in types)
+        foreach (ITypeSymbol type in types)
         {
             builder.Add(new ArgumentDescriptor(type));
         }
@@ -41,7 +41,7 @@ public record ArgumentDescriptor(INamedTypeSymbol Type, ArgumentKind Kind = Argu
     }
 
     public static ImmutableEquatableArray<ArgumentDescriptor> GetDescriptors(
-        ImmutableEquatableArray<INamedTypeSymbol> types,
+        ImmutableEquatableArray<ITypeSymbol> types,
         ImmutableEquatableArray<ArgumentKind> kinds
     )
     {
@@ -182,9 +182,10 @@ public record HarmonyPatchAttributeData(
         );
     }
 
-    // overloads at https://harmony.pardeike.net/api/HarmonyLib.HarmonyPatch.html
-    private static HarmonyPatchAttributeData ExtractFromAttribute(AttributeData data)
+    public static HarmonyPatchAttributeData ExtractFromAttribute(AttributeData data)
     {
+        // overloads at https://harmony.pardeike.net/api/HarmonyLib.HarmonyPatch.html
+
         ImmutableArray<TypedConstant> args = data.ConstructorArguments;
         if (args.Length == 0)
         {
@@ -194,7 +195,7 @@ public record HarmonyPatchAttributeData(
         INamedTypeSymbol? declaringType;
         string? methodName;
         MethodKind? methodType;
-        ImmutableEquatableArray<INamedTypeSymbol>? argumentTypes;
+        ImmutableEquatableArray<ITypeSymbol>? argumentTypes;
         ImmutableEquatableArray<ArgumentKind>? argumentKinds;
 
         if (args.Length == 1)
@@ -464,7 +465,7 @@ public record HarmonyPatchAttributeData(
 
     private static bool TryReadTypeArray(
         TypedConstant arg,
-        [NotNullWhen(true)] out ImmutableEquatableArray<INamedTypeSymbol>? typeArray
+        [NotNullWhen(true)] out ImmutableEquatableArray<ITypeSymbol>? typeArray
     )
     {
         if (
@@ -474,7 +475,7 @@ public record HarmonyPatchAttributeData(
                 == "global::System.Type"
         )
         {
-            typeArray = arg.Values.Select(v => (INamedTypeSymbol)v.Value!).ToImmutableArray();
+            typeArray = arg.Values.Select(v => (ITypeSymbol)v.Value!).ToImmutableArray();
             return true;
         }
 
