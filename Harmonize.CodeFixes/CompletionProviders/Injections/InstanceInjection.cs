@@ -24,6 +24,11 @@ public class InstanceInjection : IInjection
         TextSpan originalSpan
     )
     {
+        // don't offer a completion if e.g. the user has put ref
+        if (syntax.Modifiers.Any())
+        {
+            return [];
+        }
         string displayPrefix = context.TargetType.ToMinimalDisplayString(
             semanticModel,
             originalSpan.Start

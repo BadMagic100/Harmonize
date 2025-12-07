@@ -149,4 +149,33 @@ public class TestInstanceInjection
             TestContext.Current.CancellationToken
         );
     }
+
+    [Fact(DisplayName = "InstanceInjection should not provide injection for ref parameter")]
+    public async Task InstanceInjection_NoInjectionForRef()
+    {
+        string code = /*lang=c#-test*/
+            """
+            using HarmonyLib;
+
+            public class Patched
+            {
+                public void PatchMe() { }
+            }
+
+            [HarmonyPatch]
+            public static class Patches
+            {
+                [HarmonyPatch(typeof(Patched), nameof(Patched.PatchMe))]
+                [HarmonyTranspiler]
+                public static void PatchMeTranspiler(ref _$$) { }
+            }
+            """;
+
+        CSharpCompletionProviderTest<HarmonyInjectionCompletionProvider> test = new();
+        await test.ExpectCompletionsMatching(
+            code,
+            InjectionTestHelper.NotProducedByInjection<InstanceInjection>,
+            TestContext.Current.CancellationToken
+        );
+    }
 }
