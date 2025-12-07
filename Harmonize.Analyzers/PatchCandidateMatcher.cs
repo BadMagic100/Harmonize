@@ -36,6 +36,7 @@ public static class PatchCandidateMatcher
     /// </summary>
     public static ImmutableEquatableArray<PatchCandidateWithChanges> GetCandidates(
         ITypeSymbol declaringType,
+        // keep a watch on: do we need to allow ambiguity for these, or is just nullable ok
         MaybeAmbiguous<string>? memberName,
         MaybeAmbiguous<MethodKind>? kind,
         MaybeAmbiguous<ImmutableEquatableArray<ArgumentDescriptor>>? arguments

@@ -69,8 +69,18 @@ public class AmbiguousTargetFixer : CodeFixProvider
 
         HarmonyPatchAttributeData? data =
             HarmonyPatchAttributeData.ExtractFromMethodWithInheritance(symbol);
-        // either not a patch, or it is but we don't have a concrete target to be useful
-        if (data == null || data.TargetType == null || data.TargetType.IsAmbiguous)
+        // cases to exit:
+        // 1. Not a patch (no data)
+        // 2. We don't have a single concrete type so we can't give useful suggestions
+        // 3. Any other part of the data is non-null but amgibuous (meaning an addition is not going to make things better)
+        if (
+            data == null
+            || data.TargetType == null
+            || data.TargetType.IsAmbiguous
+            || (data.TargetMethodName != null && data.TargetMethodName.IsAmbiguous)
+            || (data.MethodKind != null && data.MethodKind.IsAmbiguous)
+            || (data.Arguments != null && data.Arguments.IsAmbiguous)
+        )
         {
             return;
         }

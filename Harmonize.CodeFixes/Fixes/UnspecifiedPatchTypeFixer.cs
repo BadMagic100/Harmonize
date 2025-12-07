@@ -19,7 +19,7 @@ namespace Harmonize.Fixes;
 [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
 public class UnspecifiedPatchTypeFixer : CodeFixProvider
 {
-    private static readonly IReadOnlyList<string> PatchAttributes =
+    private static readonly ImmutableArray<string> PatchAttributes =
     [
         "HarmonyPrefix",
         "HarmonyPostfix",
