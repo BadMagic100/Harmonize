@@ -1,6 +1,9 @@
 ﻿using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 
@@ -19,6 +22,7 @@ public class ArgumentInjection : IInjection
 
     public ImmutableArray<CompletionItem> GetCompletions(
         HarmonyPatchContext context,
+        ParameterSyntax syntax,
         SemanticModel semanticModel,
         TextSpan completionSpan
     )
@@ -45,6 +49,22 @@ public class ArgumentInjection : IInjection
                     .WithSortText($"_{param.Name}")
                     .WithFilterText($"_{param.Name}")
             );
+
+            if (!syntax.Modifiers.Any(m => m.IsKind(SyntaxKind.RefKeyword)))
+            {
+                builder.Add(
+                    baseCompletion
+                        .WithDisplayText($"ref {type} __{i}")
+                        .WithSortText($"__{i}")
+                        .WithFilterText($"__{i}")
+                );
+                builder.Add(
+                    baseCompletion
+                        .WithDisplayText($"ref {type} {param.Name}")
+                        .WithSortText($"_{param.Name}")
+                        .WithFilterText($"_{param.Name}")
+                );
+            }
         }
         return builder.ToImmutable();
     }

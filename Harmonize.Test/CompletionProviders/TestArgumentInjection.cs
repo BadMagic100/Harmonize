@@ -42,7 +42,23 @@ public class TestArgumentInjection
                 )
                 .AddProperty(ArgumentInjection.PROP_PARAMETER_NAME, "str"),
             CompletionItem
+                .Create("ref string str", "_str", "_str")
+                .AddTag(WellKnownTags.Parameter)
+                .AddProperty(
+                    HarmonyInjectionCompletionProvider.PROP_INJECTION_NAME,
+                    nameof(ArgumentInjection)
+                )
+                .AddProperty(ArgumentInjection.PROP_PARAMETER_NAME, "str"),
+            CompletionItem
                 .Create("string __0", "__0", "__0")
+                .AddTag(WellKnownTags.Parameter)
+                .AddProperty(
+                    HarmonyInjectionCompletionProvider.PROP_INJECTION_NAME,
+                    nameof(ArgumentInjection)
+                )
+                .AddProperty(ArgumentInjection.PROP_PARAMETER_NAME, "str"),
+            CompletionItem
+                .Create("ref string __0", "__0", "__0")
                 .AddTag(WellKnownTags.Parameter)
                 .AddProperty(
                     HarmonyInjectionCompletionProvider.PROP_INJECTION_NAME,
@@ -58,7 +74,23 @@ public class TestArgumentInjection
                 )
                 .AddProperty(ArgumentInjection.PROP_PARAMETER_NAME, "list"),
             CompletionItem
+                .Create("ref List<string> list", "_list", "_list")
+                .AddTag(WellKnownTags.Parameter)
+                .AddProperty(
+                    HarmonyInjectionCompletionProvider.PROP_INJECTION_NAME,
+                    nameof(ArgumentInjection)
+                )
+                .AddProperty(ArgumentInjection.PROP_PARAMETER_NAME, "list"),
+            CompletionItem
                 .Create("List<string> __1", "__1", "__1")
+                .AddTag(WellKnownTags.Parameter)
+                .AddProperty(
+                    HarmonyInjectionCompletionProvider.PROP_INJECTION_NAME,
+                    nameof(ArgumentInjection)
+                )
+                .AddProperty(ArgumentInjection.PROP_PARAMETER_NAME, "list"),
+            CompletionItem
+                .Create("ref List<string> __1", "__1", "__1")
                 .AddTag(WellKnownTags.Parameter)
                 .AddProperty(
                     HarmonyInjectionCompletionProvider.PROP_INJECTION_NAME,
@@ -107,7 +139,23 @@ public class TestArgumentInjection
                 )
                 .AddProperty(ArgumentInjection.PROP_PARAMETER_NAME, "list"),
             CompletionItem
+                .Create("ref System.Collections.Generic.List<string> list", "_list", "_list")
+                .AddTag(WellKnownTags.Parameter)
+                .AddProperty(
+                    HarmonyInjectionCompletionProvider.PROP_INJECTION_NAME,
+                    nameof(ArgumentInjection)
+                )
+                .AddProperty(ArgumentInjection.PROP_PARAMETER_NAME, "list"),
+            CompletionItem
                 .Create("System.Collections.Generic.List<string> __0", "__0", "__0")
+                .AddTag(WellKnownTags.Parameter)
+                .AddProperty(
+                    HarmonyInjectionCompletionProvider.PROP_INJECTION_NAME,
+                    nameof(ArgumentInjection)
+                )
+                .AddProperty(ArgumentInjection.PROP_PARAMETER_NAME, "list"),
+            CompletionItem
+                .Create("ref System.Collections.Generic.List<string> __0", "__0", "__0")
                 .AddTag(WellKnownTags.Parameter)
                 .AddProperty(
                     HarmonyInjectionCompletionProvider.PROP_INJECTION_NAME,
@@ -120,6 +168,59 @@ public class TestArgumentInjection
         await test.ExpectCompletions(
             code,
             expectedCompletions,
+            TestContext.Current.CancellationToken
+        );
+    }
+
+    [Fact(DisplayName = "ArgumentInjection should not provide ref injections after ref keyword")]
+    public async Task ArgumentInjection_NoRedundantRefInjection()
+    {
+        string code = /*lang=c#-test*/
+            """
+            using HarmonyLib;
+
+            public class Patched
+            {
+                public void PatchMe(string str) { }
+            }
+
+            [HarmonyPatch]
+            public static class Patches
+            {
+                [HarmonyPatch(typeof(Patched), nameof(Patched.PatchMe))]
+                [HarmonyPrefix]
+                public static void PatchMePrefix(ref _$$) { }
+            }
+            """;
+
+        List<CompletionItem> expectedCompletions =
+        [
+            CompletionItem
+                .Create("string str", "_str", "_str")
+                .AddTag(WellKnownTags.Parameter)
+                .AddProperty(
+                    HarmonyInjectionCompletionProvider.PROP_INJECTION_NAME,
+                    nameof(ArgumentInjection)
+                )
+                .AddProperty(ArgumentInjection.PROP_PARAMETER_NAME, "str"),
+            CompletionItem
+                .Create("string __0", "__0", "__0")
+                .AddTag(WellKnownTags.Parameter)
+                .AddProperty(
+                    HarmonyInjectionCompletionProvider.PROP_INJECTION_NAME,
+                    nameof(ArgumentInjection)
+                )
+                .AddProperty(ArgumentInjection.PROP_PARAMETER_NAME, "str"),
+        ];
+        CSharpCompletionProviderTest<HarmonyInjectionCompletionProvider> test = new();
+        await test.ExpectCompletions(
+            code,
+            expectedCompletions,
+            TestContext.Current.CancellationToken
+        );
+        await test.ExpectCompletionsMatching(
+            code,
+            item => !item.DisplayText.StartsWith("ref "),
             TestContext.Current.CancellationToken
         );
     }

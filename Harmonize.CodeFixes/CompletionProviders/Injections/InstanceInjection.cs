@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 
@@ -18,6 +19,7 @@ public class InstanceInjection : IInjection
 
     public ImmutableArray<CompletionItem> GetCompletions(
         HarmonyPatchContext context,
+        ParameterSyntax syntax,
         SemanticModel semanticModel,
         TextSpan originalSpan
     )

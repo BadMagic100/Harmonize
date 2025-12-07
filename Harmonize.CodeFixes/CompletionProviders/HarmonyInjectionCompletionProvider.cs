@@ -45,11 +45,11 @@ public class HarmonyInjectionCompletionProvider : CompletionProvider
         }
 
         // provide completions only from within a parameter list
-        ParameterListSyntax? paramList = syntaxRoot
+        ParameterSyntax? param = syntaxRoot
             .FindNode(context.CompletionListSpan)
-            .FirstAncestorOrSelf<ParameterListSyntax>();
-        MethodDeclarationSyntax? decl = paramList?.FirstAncestorOrSelf<MethodDeclarationSyntax>();
-        if (decl == null)
+            .FirstAncestorOrSelf<ParameterSyntax>();
+        MethodDeclarationSyntax? decl = param?.FirstAncestorOrSelf<MethodDeclarationSyntax>();
+        if (param == null || decl == null)
         {
             return;
         }
@@ -72,12 +72,10 @@ public class HarmonyInjectionCompletionProvider : CompletionProvider
                 continue;
             }
 
-            context.AddItems(
-                injection.GetCompletions(harmonyContext, semanticModel, context.CompletionListSpan)
-            );
             foreach (
                 CompletionItem item in injection.GetCompletions(
                     harmonyContext,
+                    param,
                     semanticModel,
                     context.CompletionListSpan
                 )
