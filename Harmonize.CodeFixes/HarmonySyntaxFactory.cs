@@ -160,9 +160,10 @@ internal static class HarmonySyntaxFactory
 
         return Attribute(
             originalNode.Name,
-            AttributeArgumentList(SeparatedList(attrArgs.Select(AttributeArgument)))
+            attrArgs.Count == 0
+                ? null
+                : AttributeArgumentList(SeparatedList(attrArgs.Select(AttributeArgument)))
         );
-        ;
     }
 
     /// <summary>
@@ -227,7 +228,9 @@ internal static class HarmonySyntaxFactory
 
         return Attribute(
             ParseName("HarmonyLib.HarmonyPatch"),
-            AttributeArgumentList(SeparatedList(attrArgs.Select(AttributeArgument)))
+            attrArgs.Count == 0
+                ? null
+                : AttributeArgumentList(SeparatedList(attrArgs.Select(AttributeArgument)))
         );
     }
 

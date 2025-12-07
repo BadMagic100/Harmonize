@@ -6,3 +6,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 HARMONIZE001 | Harmonize.Targeting | Error | Diagnostics
+HARMONIZE002 | Harmonize.Targeting | Warning | Diagnostics

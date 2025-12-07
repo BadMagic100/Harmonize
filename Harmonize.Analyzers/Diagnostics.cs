@@ -14,4 +14,13 @@ public static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true
     );
+
+    public static readonly DiagnosticDescriptor MissingClassPatch = new(
+        id: DiagnosticPrefix + "002",
+        title: "Missing class patch",
+        messageFormat: "Methods annotated with HarmonyPatch should belong to a class annotated with HarmonyPatch",
+        category: "Harmonize.Targeting",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true
+    );
 }
