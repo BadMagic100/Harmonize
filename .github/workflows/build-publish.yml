@@ -44,13 +44,13 @@ jobs:
     # attempts to publish to NuGet on any push to main. Skips already-published versions.
     - name: NuGet Login
       id: login
-      if: github.event_name == 'push' && false
+      if: github.event_name == 'push'
       uses: NuGet/login@v1
       with:
         user: BadMagic100
     - name: Publish NuGet
       id: publish
-      if: github.event_name == 'push' && false
+      if: github.event_name == 'push'
       run: |-
         dotnet nuget push $NUPKG_PATH \
           --api-key ${{ steps.login.outputs.NUGET_API_KEY }} \
