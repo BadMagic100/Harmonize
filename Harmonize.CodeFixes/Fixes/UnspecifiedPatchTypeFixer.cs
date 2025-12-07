@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -16,10 +17,17 @@ using Microsoft.CodeAnalysis.Text;
 namespace Harmonize.Fixes;
 
 [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-public class MissingClassPatchFixer : CodeFixProvider
+public class UnspecifiedPatchTypeFixer : CodeFixProvider
 {
+    private static readonly IReadOnlyList<string> PatchAttributes =
+    [
+        "HarmonyPrefix",
+        "HarmonyPostfix",
+        "HarmonyTranspiler",
+    ];
+
     public override ImmutableArray<string> FixableDiagnosticIds =>
-        [Diagnostics.MissingClassPatch.Id];
+        [Diagnostics.UnspecifiedPatchType.Id];
 
     public override FixAllProvider? GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -41,43 +49,60 @@ public class MissingClassPatchFixer : CodeFixProvider
 
         Diagnostic diagnostic = context.Diagnostics.First();
         TextSpan span = context.Span;
-        ClassDeclarationSyntax? syntax = root.FindNode(span)
-            .FirstAncestorOrSelf<ClassDeclarationSyntax>();
+        MethodDeclarationSyntax? syntax = root.FindNode(span)
+            .FirstAncestorOrSelf<MethodDeclarationSyntax>();
         if (syntax == null)
         {
             return;
         }
 
-        INamedTypeSymbol? symbol = model.GetDeclaredSymbol(syntax);
+        IMethodSymbol? symbol = model.GetDeclaredSymbol(syntax, context.CancellationToken);
         if (symbol == null)
         {
             return;
         }
 
-        context.RegisterCodeFix(
-            CodeAction.Create(
-                title: "Add HarmonyPatch attribute",
-                createChangedDocument: c => AddPatchAttributeToClass(context.Document, syntax, c),
-                equivalenceKey: nameof(MissingClassPatchFixer)
-            ),
-            diagnostic
-        );
+        // we can only provide useful fixes in the case where a type is not specified; we can add one.
+        // if it's ambiguous we generally can't offer removals (for example, if it's inferred from the name)
+        if (symbol.HasAnyPatchType())
+        {
+            return;
+        }
+
+        foreach (string possibleAttribute in PatchAttributes)
+        {
+            context.RegisterCodeFix(
+                CodeAction.Create(
+                    title: $"Apply {possibleAttribute}",
+                    createChangedDocument: c =>
+                        ApplyAttributeToMethod(
+                            context.Document,
+                            syntax,
+                            $"HarmonyLib.{possibleAttribute}",
+                            c
+                        ),
+                    equivalenceKey: possibleAttribute
+                ),
+                diagnostic
+            );
+        }
     }
 
-    private async Task<Document> AddPatchAttributeToClass(
+    private async Task<Document> ApplyAttributeToMethod(
         Document document,
-        ClassDeclarationSyntax classDeclaration,
+        MethodDeclarationSyntax methodDeclaration,
+        string attrName,
         CancellationToken cancellationToken
     )
     {
         DocumentEditor editor = await DocumentEditor.CreateAsync(document, cancellationToken);
 
         editor.ReplaceNode(
-            classDeclaration,
-            classDeclaration.AddAttributeLists(
+            methodDeclaration,
+            methodDeclaration.AddAttributeLists(
                 (AttributeListSyntax)
                     editor
-                        .Generator.Attribute("HarmonyLib.HarmonyPatch")
+                        .Generator.Attribute(attrName)
                         .WithAdditionalAnnotations(
                             Simplifier.Annotation,
                             Simplifier.SpecialTypeAnnotation,

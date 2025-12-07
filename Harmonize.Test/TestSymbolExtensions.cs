@@ -15,7 +15,6 @@ public class TestSymbolExtensions
             [HarmonyPatch]
             class Patched
             {
-                [HarmonyPostfix] // ignored
                 [|public void Prefix()|] { }
             }
             """;
@@ -38,7 +37,6 @@ public class TestSymbolExtensions
             [HarmonyPatch]
             class Patched
             {
-                [HarmonyPrefix] // ignored
                 [|public void Postfix()|] { }
             }
             """;
@@ -61,7 +59,6 @@ public class TestSymbolExtensions
             [HarmonyPatch]
             class Patched
             {
-                [HarmonyPostfix] // ignored
                 [|public void Transpiler()|] { }
             }
             """;
@@ -158,6 +155,53 @@ public class TestSymbolExtensions
             class Patched
             {
                 [|public void MyCustomName()|] { }
+            }
+            """;
+
+        IMethodSymbol symbol = await RoslynHelpers.GetMethodSymbolFromSourceAsync(
+            code,
+            TestContext.Current.CancellationToken
+        );
+        PatchType actual = symbol.GetPatchType();
+        Assert.Equal(PatchType.Unknown, actual);
+    }
+
+    [Fact(DisplayName = "GetPatchType should return Unknown when annotated twice")]
+    public async Task GetPatchType_ReturnsUnknownWhenAnnotatedWithTwoAttributes()
+    {
+        string code = /*lang=c#-test*/
+            """
+            using HarmonyLib;
+
+            [HarmonyPatch]
+            class Patched
+            {
+                [HarmonyPrefix]
+                [HarmonyPostfix]
+                [|public void MyCustomName()|] { }
+            }
+            """;
+
+        IMethodSymbol symbol = await RoslynHelpers.GetMethodSymbolFromSourceAsync(
+            code,
+            TestContext.Current.CancellationToken
+        );
+        PatchType actual = symbol.GetPatchType();
+        Assert.Equal(PatchType.Unknown, actual);
+    }
+
+    [Fact(DisplayName = "GetPatchType should return Unknown when both named and annotated")]
+    public async Task GetPatchType_ReturnsUnknownWhenAnnotatedAndNamed()
+    {
+        string code = /*lang=c#-test*/
+            """
+            using HarmonyLib;
+
+            [HarmonyPatch]
+            class Patched
+            {
+                [HarmonyPrefix]
+                [|public void Postfix()|] { }
             }
             """;
 

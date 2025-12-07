@@ -23,4 +23,13 @@ public static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true
     );
+
+    public static readonly DiagnosticDescriptor UnspecifiedPatchType = new(
+        id: DiagnosticPrefix + "003",
+        title: "Undefined patch type",
+        messageFormat: "Patch type is undefined or ambiguous and cannot be determined",
+        category: "Harmonize.Targeting",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true
+    );
 }
