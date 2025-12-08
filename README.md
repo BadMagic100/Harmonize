@@ -13,4 +13,4 @@ remedy them where possible.
 To get started, simply add to your csproj:
 
 ```xml
-<PackageReference Include="Harmonize" Version="1.0.1" />
+<PackageReference Include="Harmonize" Version="1.0.2" />
