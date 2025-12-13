@@ -8,14 +8,14 @@
 
   <PropertyGroup>
     <PackageId>Harmonize</PackageId>
-    <PackageVersion>1.0.2</PackageVersion>
+    <PackageVersion>1.0.3</PackageVersion>
     <Authors>BadMagic100</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/BadMagic100/Harmonize</PackageProjectUrl>
     <RepositoryUrl>https://github.com/BadMagic100/Harmonize</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Description>TODO</Description>
+    <Description>Roslyn completion providers and analyzers to make Harmony more delightful</Description>
     <Copyright>Copyright BadMagic100 2025</Copyright>
     <PackageTags>analyzers</PackageTags>
     <DevelopmentDependency>true</DevelopmentDependency>
