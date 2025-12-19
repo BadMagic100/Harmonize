@@ -8,7 +8,7 @@
 
   <PropertyGroup>
     <PackageId>Harmonize</PackageId>
-    <PackageVersion>1.0.3</PackageVersion>
+    <PackageVersion>1.0.4</PackageVersion>
     <Authors>BadMagic100</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
