@@ -49,6 +49,9 @@ Harmonize provides the following diagnostics, most of which also come with quick
 
 ### Completions
 
+> [!NOTE]
+> Completions do not work in Rider and have not been verified in VSCode
+
 Harmonize provides the following completion providers:
 
 - Injections - Fully-typed injections for patch parameters when typing in a parameter list of an
