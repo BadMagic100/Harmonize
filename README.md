@@ -45,12 +45,13 @@ Harmonize provides the following diagnostics, most of which also come with quick
   silently ignore the patch.
 - `HARMONIZE004` - Warns when the type (Prefix, Postfix, Transpiler) of a patch method cannot be determined. If
   the method is not named or annotated appropriately, this will cause PatchAll to silently ignore the patch. If
-  there are multiple patch types among the name/annotations this is undefined behavior.
+  there are multiple patch types among the name/annotations this is undefined behavior. Static helper methods
+  called from within the patch class are exempted from this rule.
 
 ### Completions
 
-> [!NOTE]
-> Completions do not work in Rider and have not been verified in VSCode
+> [!WARNING]
+> Completions are not supported in Rider due to limitations of the JetBrains platform.
 
 Harmonize provides the following completion providers:
 
