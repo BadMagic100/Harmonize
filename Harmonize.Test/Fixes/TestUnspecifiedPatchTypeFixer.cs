@@ -8,6 +8,27 @@ namespace Harmonize.Test.Fixes;
 
 public class TestUnspecifiedPatchTypeFixer
 {
+    [Fact(DisplayName = "should not emit diagnostic for helper methods")]
+    public async Task TestHelperMethodNoDiagnostic()
+    {
+        string source = /*lang=c#-test*/
+            """
+            using HarmonyLib;
+
+            [HarmonyPatch(typeof(string), nameof(string.Copy))]
+            class Patches
+            {
+                private static void Prefix() 
+                { 
+                    Helper();
+                }
+
+                private static void Helper() { }
+            }
+            """;
+        await VerifyCS.VerifyAnalyzerOnlyAsync(source, [], TestContext.Current.CancellationToken);
+    }
+
     [Fact(DisplayName = "should provide diagnostic without fix for multiple patch types")]
     public async Task TestMultiplePatchTypes()
     {

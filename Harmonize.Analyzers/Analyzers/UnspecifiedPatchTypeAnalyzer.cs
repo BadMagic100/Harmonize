@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -40,14 +42,39 @@ public class UnspecifiedPatchTypeAnalyzer : DiagnosticAnalyzer
         }
 
         PatchType type = method.GetPatchType();
-        if (type == PatchType.Unknown)
+        if (type != PatchType.Unknown)
         {
-            context.ReportDiagnostic(
-                Diagnostic.Create(
-                    Diagnostics.UnspecifiedPatchType,
-                    Location.Create(context.FilterTree, syntax.Identifier.Span)
-                )
-            );
+            return;
         }
+
+        // see if this method is used as a helper from with the patch class.
+        // usage from outside the patch class cannot be detected because SymbolFinder
+        // requires the workspace API which is not available to CLI builds.
+        IEnumerable<InvocationExpressionSyntax> invocations =
+            syntax
+                .FirstAncestorOrSelf<ClassDeclarationSyntax>()
+                ?.DescendantNodes()
+                .OfType<InvocationExpressionSyntax>() ?? [];
+        foreach (InvocationExpressionSyntax invocation in invocations)
+        {
+            SymbolInfo calledSymbol = context.SemanticModel.GetSymbolInfo(
+                invocation,
+                context.CancellationToken
+            );
+            if (
+                calledSymbol.Symbol != null
+                && calledSymbol.Symbol.Equals(method, SymbolEqualityComparer.Default)
+            )
+            {
+                return;
+            }
+        }
+
+        context.ReportDiagnostic(
+            Diagnostic.Create(
+                Diagnostics.UnspecifiedPatchType,
+                Location.Create(context.FilterTree, syntax.Identifier.Span)
+            )
+        );
     }
 }
