@@ -47,6 +47,11 @@ public class UnspecifiedPatchTypeAnalyzer : DiagnosticAnalyzer
             return;
         }
 
+        if (AuxilaryMethodClassifier.IsAnyAuxilaryMethodCandidate(method))
+        {
+            return;
+        }
+
         // see if this method is used as a helper from with the patch class.
         // usage from outside the patch class cannot be detected because SymbolFinder
         // requires the workspace API which is not available to CLI builds.
