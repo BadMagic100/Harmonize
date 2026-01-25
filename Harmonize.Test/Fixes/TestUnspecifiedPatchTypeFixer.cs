@@ -29,6 +29,47 @@ public class TestUnspecifiedPatchTypeFixer
         await VerifyCS.VerifyAnalyzerOnlyAsync(source, [], TestContext.Current.CancellationToken);
     }
 
+    [Theory(DisplayName = "should not emit diagnostic for auxilary methods by name")]
+    [InlineData(["Prepare"])]
+    [InlineData(["TargetMethod"])]
+    [InlineData(["TargetMethods"])]
+    [InlineData(["Cleanup"])]
+    public async Task TestAuxilaryMethodNoDiagnosticByName(string name)
+    {
+        string source = /*lang=c#-test*/
+            $$"""
+            using HarmonyLib;
+
+            [HarmonyPatch(typeof(string), nameof(string.Copy))]
+            class Patches
+            {
+                private static void {{name}}() { }
+            }
+            """;
+        await VerifyCS.VerifyAnalyzerOnlyAsync(source, [], TestContext.Current.CancellationToken);
+    }
+
+    [Theory(DisplayName = "should not emit diagnostic for auxilary methods by attribute")]
+    [InlineData(["Prepare"])]
+    [InlineData(["TargetMethod"])]
+    [InlineData(["TargetMethods"])]
+    [InlineData(["Cleanup"])]
+    public async Task TestAuxilaryMethodNoDiagnosticByAttribute(string attr)
+    {
+        string source = /*lang=c#-test*/
+            $$"""
+            using HarmonyLib;
+
+            [HarmonyPatch(typeof(string), nameof(string.Copy))]
+            class Patches
+            {
+                [Harmony{{attr}}]
+                private static void Foo() { }
+            }
+            """;
+        await VerifyCS.VerifyAnalyzerOnlyAsync(source, [], TestContext.Current.CancellationToken);
+    }
+
     [Fact(DisplayName = "should provide diagnostic without fix for multiple patch types")]
     public async Task TestMultiplePatchTypes()
     {
