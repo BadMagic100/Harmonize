@@ -19,7 +19,7 @@
       Version="$(RoslynVersion)"
     />
 
-    <PackageReference Include="PolySharp" Version="1.15.0" PrivateAssets="all" />
+    <PackageReference Include="PolySharp" Version="1.17.1" PrivateAssets="all" />
     <PackageReference Include="CSharpier.MsBuild" Version="1.2.1" PrivateAssets="all" />
   </ItemGroup>
 
