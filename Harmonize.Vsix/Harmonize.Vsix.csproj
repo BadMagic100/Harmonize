@@ -24,7 +24,7 @@
   <ItemGroup>
     <PackageReference
       Include="Microsoft.VSSDK.BuildTools"
-      Version="17.14.2120"
+      Version="18.12.1606"
       PrivateAssets="all"
     />
   </ItemGroup>
